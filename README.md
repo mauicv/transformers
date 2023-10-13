@@ -1,4 +1,8 @@
-# gpt-mauicv
+# Transformers
+
+## Description:
+
+This repo is a collection of PyTorch implementations of Transformer architectures. The goal is learning and experimentation.
 
 
 ## Resources:
