@@ -1,0 +1,21 @@
+type: 'Transformer'
+params:
+  hidden_dim: 12
+  num_heads: 4
+  dropout: 0.5
+  layers:
+    - num: 2
+      type: 'TransformerLayer'
+      params:
+        hidden_dim: 12
+        attn:
+          type: 'Attention'
+          params:
+            hidden_dim: 12
+            num_heads: 4
+            dropout: 0.5
+        mlp:
+          type: 'MLP'
+          params:
+            hidden_dim: 12
+            dropout: 0.5
