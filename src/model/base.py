@@ -10,7 +10,8 @@ class Transformer(torch.nn.Module):
             dropout: float=0.5,
             max_sequence_length: int=1000,
             dictionary_size: int=1000,
-            layers: list = []
+            layers: list = [],
+            head=None
         ):
         super(Transformer, self).__init__()
         assert hidden_dim % num_heads == 0, "num_heads must divide hidden_dim"
@@ -19,6 +20,7 @@ class Transformer(torch.nn.Module):
         self.dropout = dropout
         self.max_sequence_length = max_sequence_length
         self.dictionary_size = dictionary_size
+        self.head = head
 
         self.pos_emb = torch.nn.Embedding(
             self.max_sequence_length,
@@ -30,8 +32,6 @@ class Transformer(torch.nn.Module):
             self.hidden_dim
         )
 
-        print(layers)
-
         self.layers = torch.nn.ModuleList(layers)
 
     def forward(self, x):
@@ -39,4 +39,6 @@ class Transformer(torch.nn.Module):
         x = self.tok_emb(x) + self.pos_emb(positions)
         for layer in self.layers:
             x = layer(x)
+        if self.head is not None:
+            x = self.head(x)
         return x

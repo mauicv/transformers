@@ -1,8 +1,9 @@
+import yaml
 from src.model.layer import TransformerLayer
 from src.model.attention import Attention
 from src.model.mlp import MLP
 from src.model.base import Transformer
-import yaml
+from src.model.classification_head import ClassificationHead
 
 
 def init_from_config(config):
@@ -38,4 +39,8 @@ def _init_obj(config):
 def init_from_file(config_path):
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
+    return _init_obj(config)
+
+def init_from_yml_string(config_string):
+    config = yaml.safe_load(config_string)
     return _init_obj(config)
