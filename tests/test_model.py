@@ -1,12 +1,12 @@
 import pytest
-from src.model.base import Transformer
-from src.model.make import init_from_file
+from src.model.gpt import GPT
+from src.model.make_model import init_from_file
 import torch
 
 
 def test_model_errors():
     with pytest.raises(AssertionError):
-        Transformer(
+        GPT(
             hidden_dim=12,
             num_heads=5,
             dropout=0.5

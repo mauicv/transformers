@@ -1,0 +1,13 @@
+type: 'TransformerExperiment'
+params:
+  opt: 
+    type: AdamW
+    params:
+      lr: 0.01
+      params: 'fn!get_parameters|weight_decay:float=0.1'
+  loss_fn:
+    type: CrossEntropyLoss
+    params:
+      reduction: 'mean'
+    
+

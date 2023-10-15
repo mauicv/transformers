@@ -1,4 +1,5 @@
-type: 'Transformer'
+type: 'GPT'
+state_path: 'model_state.pt'
 params:
   hidden_dim: 12
   num_heads: 4

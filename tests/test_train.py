@@ -1,6 +1,6 @@
 from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
-from src.model.make import init_from_yml_string
+from src.model.make_model import init_from_yml_string
 import torch
 import pytest
 from src.utils import set_seed
@@ -24,7 +24,7 @@ def validate(model):
     return acc
 
 
-@pytest.mark.skip(reason="Slow running test")
+@pytest.mark.skip(reason="Slow running/intermittent test")
 def test_train():
     ds = SortDataset(split='train', length=6, num_digits=3)
     dl = DataLoader(ds, batch_size=32, shuffle=True, num_workers=0)
@@ -33,7 +33,7 @@ def test_train():
     vcb_size = ds.get_vocab_size()
     hdn_dim = 256
     config = f"""
-    type: 'Transformer'
+    type: 'GPT'
     params:
       dropout: 0.5
       hidden_dim: {hdn_dim}

@@ -20,6 +20,8 @@ class TransformerLayer(torch.nn.Module):
         )
 
     def forward(self, x):
-        x = self.ln_1(x + self.attn(x))
-        x = self.ln_2(x + self.mlp(x))
+        _x = self.ln_1(x)
+        x = x + self.attn(_x)
+        _x = self.ln_2(x)
+        x = x + self.mlp(_x)
         return x
