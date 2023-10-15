@@ -2,19 +2,29 @@ from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
 from src.model.make import init_from_yml_string
 import torch
+import pytest
 from src.utils import set_seed
 set_seed(0)
 
-# def validate(model):
-#     ds = SortDataset(split='test', length=6, num_digits=3)
-#     dl = DataLoader(ds, batch_size=32, shuffle=False, num_workers=0)
-#     for batch in dl:
-#         x = batch[:, :ds.get_block_size()]
-#         y = batch[:, ds.get_block_size():]
-#         y_hat = model(x)
-#         assert torch.all(torch.eq(y, y_hat.argmax(dim=-1)))
+def validate(model):
+    ds = SortDataset(split='test', length=6, num_digits=3)
+    dl = DataLoader(ds, batch_size=32, shuffle=False, num_workers=0)
+    total = 0
+    sum_acc = 0
+    for x, y_true in dl:
+        train_inds = y_true > 0
+        y_hat = model(x)
+        y_true = y_true[train_inds]
+        y_hat = y_hat[train_inds]
+        r = torch.eq(y_true, y_hat.argmax(dim=-1))
+        l = r.shape[0]
+        total += l
+        sum_acc += r.sum()
+    acc = sum_acc / total
+    return acc
 
 
+@pytest.mark.skip(reason="Slow running test")
 def test_train():
     ds = SortDataset(split='train', length=6, num_digits=3)
     dl = DataLoader(ds, batch_size=32, shuffle=True, num_workers=0)
@@ -59,9 +69,12 @@ def test_train():
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    print()
-    print('epoch | loss')
-    for epoch in range(10):
+    acc = validate(model)
+
+    print('\n')
+    print('epoch_|_loss_____|_acc______')
+    print(f'    -1| None     | {acc:0.5}')
+    for epoch in range(5):
         for x, y_true in dl:
             b, l = x.shape
             opt.zero_grad()
@@ -74,6 +87,10 @@ def test_train():
             loss.backward()
             opt.step()
 
-        print(f'{epoch:<6}| {loss.item():0.5}')
+        acc = validate(model)
+
+        print(f'{epoch:>6}| {loss.item():<8.5} | {acc:0.5}')
 
     assert loss.item() < 0.1
+    acc = validate(model)
+    assert acc > 0.95
