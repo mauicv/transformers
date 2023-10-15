@@ -2,7 +2,7 @@ import yaml
 
 #------------------------------------------------------------------------
 # These imports are necessary to make the code work, see globals() below!
-from src.experiment.transformer_experiment import TransformerExperiment
+from pytfex.experiment.transformer_experiment import TransformerExperiment
 from torch.optim import AdamW, Adam
 from torch.nn import CrossEntropyLoss
 import torch

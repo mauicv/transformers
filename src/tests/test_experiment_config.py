@@ -1,5 +1,5 @@
-from src.model.make_model import init_from_config as init_model_from_config
-from src.experiment.make_experiment import init_from_config as init_exp_from_config
+from pytfex.model.make_model import init_from_config as init_model_from_config
+from pytfex.experiment.make_experiment import init_from_config as init_exp_from_config
 from torch.optim import AdamW
 from torch.nn import CrossEntropyLoss
 import yaml
@@ -7,11 +7,11 @@ import os
 
 
 def test_model(tmpdir):
-    with open('./tests/test_yaml/simple.yml', 'r') as file:
+    with open('./src/tests/test_yaml/simple.yml', 'r') as file:
         config = yaml.safe_load(file)
     model = init_model_from_config(config)
 
-    with open('./tests/test_yaml/experiment.yml', 'r') as file:
+    with open('./src/tests/test_yaml/experiment.yml', 'r') as file:
         config = yaml.safe_load(file)
     experiment_1 = init_exp_from_config(config, model)
     assert isinstance(experiment_1.opt, AdamW)
@@ -24,7 +24,7 @@ def test_model(tmpdir):
 
     experiment_1.save_state(os.path.join(tmpdir, 'exp-state.pt'))
     
-    with open('./tests/test_yaml/experiment.yml', 'r') as file:
+    with open('./src/tests/test_yaml/experiment.yml', 'r') as file:
         config = yaml.safe_load(file)
     
     experiment_2 = init_exp_from_config(

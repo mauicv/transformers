@@ -1,4 +1,4 @@
-from src.model.base import BaseTransformer
+from pytfex.model.base import BaseTransformer
 import torch.nn as nn
 import torch
 from torch.nn import functional as F

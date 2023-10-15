@@ -1,10 +1,10 @@
-from src.model.make_model import init_from_config
+from pytfex.model.make_model import init_from_config
 import torch
 import yaml
 import os
 
 def test_model_config():
-    with open('./tests/test_yaml/config.yml', 'r') as file:
+    with open('./src/tests/test_yaml/config.yml', 'r') as file:
         config = yaml.safe_load(file)
     model = init_from_config(config)
     assert model.hidden_dim == 12
@@ -18,12 +18,12 @@ def test_model_config():
 
 
 def test_model_config_load_state(tmpdir):
-    with open('./tests/test_yaml/simple.yml', 'r') as file:
+    with open('./src/tests/test_yaml/simple.yml', 'r') as file:
         config = yaml.safe_load(file)
     model_1 = init_from_config(config)
     model_1.save_state(os.path.join(tmpdir, 'model_state.pt'))
 
-    with open('./tests/test_yaml/simple.yml', 'r') as file:
+    with open('./src/tests/test_yaml/simple.yml', 'r') as file:
         config = yaml.safe_load(file)
     model_2 = init_from_config(config, load_state=True, path=tmpdir)
 

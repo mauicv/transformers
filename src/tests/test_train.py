@@ -1,9 +1,11 @@
 from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
-from src.model.make_model import init_from_yml_string
+
+from pytfex.model.make_model import init_from_yml_string
+from pytfex.utils import set_seed
+
 import torch
 import pytest
-from src.utils import set_seed
 set_seed(0)
 
 def validate(model):

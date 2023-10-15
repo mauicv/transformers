@@ -3,11 +3,11 @@ import os
 import copy
 #------------------------------------------------------------------------
 # These imports are necessary to make the code work, see globals() below!
-from src.model.layer import TransformerLayer
-from src.model.attention import Attention
-from src.model.mlp import MLP
-from src.model.gpt import GPT
-from src.model.classification_head import ClassificationHead
+from pytfex.model.layer import TransformerLayer
+from pytfex.model.attention import Attention
+from pytfex.model.mlp import MLP
+from pytfex.model.gpt import GPT
+from pytfex.model.classification_head import ClassificationHead
 #------------------------------------------------------------------------
 
 # TODO: udpate this for model state loading in init_from_config
