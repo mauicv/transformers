@@ -43,11 +43,12 @@ class Attention(torch.nn.Module):
         q, k, v = torch.split(qkv, [1, 1, 1], dim=1)
         q, k, v = q.squeeze(1), k.squeeze(1), v.squeeze(1)
         a = k @ q.transpose(-2, -1)
-        if mask is not None:
-            a = a.masked_fill(mask == 0, float('-inf'))
         a = self.attn_dropout(a)
+        if mask is not None:
+            a = a.masked_fill(mask, float('-inf'))
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = torch.softmax(a / torch.sqrt(hd), dim=-1)
+        # print(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         return self.resid_dropout(output)

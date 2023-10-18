@@ -25,4 +25,5 @@ def test_model_with_mask():
     t1 = torch.randint(1000, (3, 10))
     mask = get_causal_mask(10)
     t2 = model(t1, mask=mask)
+    assert not torch.isnan(t2).any()
     assert t2.shape == (3, 10, 12)
