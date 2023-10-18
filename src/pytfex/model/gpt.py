@@ -36,11 +36,15 @@ class GPT(torch.nn.Module, BaseTransformer):
 
         self.layers = torch.nn.ModuleList(layers)
 
-    def forward(self, x):
-        positions = torch.arange(0, x.shape[1]).expand(x.shape[0], -1).to(x.device)
+    def forward(self, x, mask=None):
+        positions = (torch
+            .arange(0, x.shape[1])
+            .expand(x.shape[0], -1)
+            .to(x.device)
+        )
         x = self.tok_emb(x) + self.pos_emb(positions)
         for layer in self.layers:
-            x = layer(x)
+            x = layer(x, mask=mask)
         if self.head is not None:
             x = self.head(x)
         return x

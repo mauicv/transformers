@@ -34,7 +34,7 @@ class Attention(torch.nn.Module):
                 mask=None
             ):
         if mask is not None:
-            assert mask.dtype == torch.float32, "Mask must be of type torch.float32"
+            assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
         assert len(x.shape) == 3, "Input must have shape (batch, seq_len, hidden_dim)"
         assert x.shape[-1] == self.hidden_dim, "Input has incorrect hidden_dim"
         b, l, d = x.shape
@@ -43,11 +43,11 @@ class Attention(torch.nn.Module):
         q, k, v = torch.split(qkv, [1, 1, 1], dim=1)
         q, k, v = q.squeeze(1), k.squeeze(1), v.squeeze(1)
         a = k @ q.transpose(-2, -1)
+        if mask is not None:
+            a = a.masked_fill(mask == 0, float('-inf'))
+        a = self.attn_dropout(a)
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = torch.softmax(a / torch.sqrt(hd), dim=-1)
-        a = self.attn_dropout(a)
-        if mask is not None:
-            a = a * mask
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         return self.resid_dropout(output)
