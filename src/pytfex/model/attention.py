@@ -48,7 +48,6 @@ class Attention(torch.nn.Module):
             a = a.masked_fill(mask, float('-inf'))
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = torch.softmax(a / torch.sqrt(hd), dim=-1)
-        # print(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         return self.resid_dropout(output)
