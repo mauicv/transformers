@@ -36,7 +36,7 @@ class GPT(torch.nn.Module, BaseTransformer):
 
         self.layers = torch.nn.ModuleList(layers)
 
-        self.drop = nn.Dropout(dropout),
+        self.drop = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
         positions = (torch
