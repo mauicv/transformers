@@ -4,6 +4,12 @@ params:
   hidden_dim: 12
   num_heads: 4
   dropout: 0.5
+  embedder:
+    type: 'TokenPositionEmbedder'
+    params:
+      max_sequence_length: 512
+      dictionary_size: 1000
+      hidden_dim: 12
   layers:
     - num: 2
       type: 'TransformerLayer'

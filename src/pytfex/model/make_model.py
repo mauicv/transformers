@@ -8,6 +8,7 @@ from pytfex.model.attention import Attention
 from pytfex.model.mlp import MLP
 from pytfex.model.gpt import GPT
 from pytfex.model.classification_head import ClassificationHead
+from pytfex.model.embeddings import TokenPositionEmbedder
 #------------------------------------------------------------------------
 
 # TODO: udpate this for model state loading in init_from_config
