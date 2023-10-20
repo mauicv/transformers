@@ -7,8 +7,8 @@ from pytfex.model.layer import TransformerLayer
 from pytfex.model.attention import Attention
 from pytfex.model.mlp import MLP
 from pytfex.model.gpt import GPT
-from pytfex.model.classification_head import ClassificationHead
-from pytfex.model.embeddings import TokenPositionEmbedder
+from pytfex.model.heads import ClassificationHead, InversePatch
+from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder
 #------------------------------------------------------------------------
 
 # TODO: udpate this for model state loading in init_from_config
@@ -42,7 +42,6 @@ def _init_from_config(
         path: str=None,
         model_path: str=None,
     ):
-
     if 'num' in config:
         objs = []
         num = config['num']
