@@ -39,15 +39,16 @@ class Attention(torch.nn.Module):
         assert x.shape[-1] == self.hidden_dim, "Input has incorrect hidden_dim"
         b, l, d = x.shape
         qkv = self.qkv(x)
-        qkv = qkv.reshape(b, 3, self.num_heads, l, -1)
-        q, k, v = torch.split(qkv, [1, 1, 1], dim=1)
-        q, k, v = q.squeeze(1), k.squeeze(1), v.squeeze(1)
-        a = k @ q.transpose(-2, -1)
-        a = self.attn_dropout(a)
+        q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
+        q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        k = k.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        hd = torch.tensor(self.head_dim, dtype=torch.float32)
+        a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))
-        hd = torch.tensor(self.head_dim, dtype=torch.float32)
-        a = torch.softmax(a / torch.sqrt(hd), dim=-1)
+        a = torch.softmax(a, dim=-1)
+        a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         return self.resid_dropout(output)
