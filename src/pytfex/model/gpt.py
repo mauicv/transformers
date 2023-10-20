@@ -36,6 +36,8 @@ class GPT(torch.nn.Module, BaseTransformer):
 
         self.layers = torch.nn.ModuleList(layers)
 
+        self.drop = nn.Dropout(dropout),
+
     def forward(self, x, mask=None):
         positions = (torch
             .arange(0, x.shape[1])
@@ -43,6 +45,7 @@ class GPT(torch.nn.Module, BaseTransformer):
             .to(x.device)
         )
         x = self.tok_emb(x) + self.pos_emb(positions)
+        x = self.drop(x)
         for layer in self.layers:
             x = layer(x, mask=mask)
         if self.head is not None:

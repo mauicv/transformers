@@ -15,7 +15,8 @@ class ClassificationHead(torch.nn.Module):
         )
         self.linear = torch.nn.Linear(
             self.hidden_dim,
-            self.vocab_size
+            self.vocab_size,
+            bias=False
         )
 
     def forward(self, x):
