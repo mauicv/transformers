@@ -29,6 +29,6 @@ class MLP(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.linear1(x)
         x = torch.nn.functional.gelu(x)
-        x = self.mlp_dropout(x)
         x = self.linear2(x)
+        x = self.mlp_dropout(x)
         return x
