@@ -50,3 +50,37 @@ def test_ViT():
     assert t2.shape == (1, 16, 49)
     t3 = model.head.get_images(t1)
     assert t3.shape == (1, 1, 28, 28)
+
+def test_ViT2():
+    hdn_dim = 12
+    config = f"""
+    type: 'GPT'
+    params:
+      dropout: 0.5
+      hidden_dim: {hdn_dim}
+      num_heads: 4
+      dropout: 0.5
+      embedder:
+        type: 'PatchEmbedder'
+        params:
+          img_size: '28,28'
+          patch_size: '7,7'
+          in_channels: 1
+          hidden_dim: {hdn_dim}
+      head:
+        type: 'InversePatch'
+        params:
+          img_size: '28,28'
+          patch_size: '7,7'
+          in_channels: 1
+          hidden_dim: {hdn_dim}
+      layers:
+        - num: 0
+    """
+    model = init_from_yml_string(config)
+    t = torch.randn((1, 1, 28, 28))
+    t_patched = model.embedder.get_patches(t)
+    assert t_patched.shape == (1, 16, 7*7)
+    t_image = model.head.get_images(t_patched)
+    assert t_image.shape == (1, 1, 28, 28)
+    assert torch.allclose(t_image, t)

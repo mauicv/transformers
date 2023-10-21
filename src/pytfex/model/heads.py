@@ -48,9 +48,16 @@ class InversePatch(torch.nn.Module):
         return x
 
     def get_images(self, patches):
-        return patches.reshape(
-            patches.shape[0],
-            self.in_channels,
-            self.img_size[0],
-            self.img_size[1]
+        b, _, _ = patches.shape
+        h, w = self.img_size
+        c = self.in_channels
+        p_h, p_w = self.patch_size
+        patches = patches.view(b, -1, c * p_h * p_w).transpose(1, 2)
+        reconstructed = torch.nn.functional.fold(
+            patches,
+            output_size=(h, w), 
+            kernel_size=(p_h, p_w), 
+            stride=(p_h, p_w)
         )
+        return reconstructed
+
