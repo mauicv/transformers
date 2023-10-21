@@ -1,15 +1,16 @@
 import yaml
 import os
 import copy
-#------------------------------------------------------------------------
+#--------------------------------------------------------------------------
 # These imports are necessary to make the code work, see globals() below!
 from pytfex.model.layer import TransformerLayer
 from pytfex.model.attention import Attention
 from pytfex.model.mlp import MLP
 from pytfex.model.gpt import GPT
 from pytfex.model.heads import ClassificationHead, InversePatch
-from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder
-#------------------------------------------------------------------------
+from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder, \
+    PositionEmbedder
+#--------------------------------------------------------------------------
 
 # TODO: udpate this for model state loading in init_from_config
 def init_from_file(config_path):
