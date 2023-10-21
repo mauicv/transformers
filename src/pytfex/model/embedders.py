@@ -90,8 +90,8 @@ class PositionEmbedder(torch.nn.Module):
             hidden_dim
         )
 
-    def forward(self, x, l):
-        b, _, _ = x.shape
+    def forward(self, x):
+        b, l, _ = x.shape
         device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
         positions = torch.arange(0, l).expand(b, -1).to(device)
         return x + self.pos_emb(positions)

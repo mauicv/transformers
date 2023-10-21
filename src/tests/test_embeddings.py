@@ -33,5 +33,6 @@ def test_position_embedder():
         hidden_dim=12
     )
     x = torch.randn((64, 1, 12))
-    t = embedder(x, 5)
+    x = x.expand(-1, 5, -1)
+    t = embedder(x)
     assert t.shape == (64, 5, 12)
