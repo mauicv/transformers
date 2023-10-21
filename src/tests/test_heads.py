@@ -10,6 +10,8 @@ def test_inverse_patch():
     )
     t1 = torch.randn((1, 16, 12))
     t2 = head(t1)
+    assert t2.shape == (1, 16, 49)
+    t2 = head.get_images(t2)
     assert t2.shape == (1, 1, 28, 28)
 
 def test_classification_head():

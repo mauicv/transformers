@@ -44,5 +44,9 @@ def test_ViT():
     """
     model = init_from_yml_string(config)
     t1 = torch.randn((1, 1, 28, 28))
+    t1 = model.embedder.get_patches(t1)
+    assert t1.shape == (1, 16, 7*7)
     t2 = model(t1)
-    assert t2.shape == (1, 1, 28, 28)
+    assert t2.shape == (1, 16, 49)
+    t3 = model.head.get_images(t1)
+    assert t3.shape == (1, 1, 28, 28)

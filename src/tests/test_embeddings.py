@@ -21,5 +21,7 @@ def test_patch_embedder():
         in_channels=1
     )
     t1 = torch.randn((1, 1, 28, 28))
-    t2 = embedder(t1)
-    assert t2.shape == (1, 16, 12)
+    t2 = embedder.get_patches(t1)
+    assert t2.shape == (1, 16, 7*7)
+    t3 = embedder(t2)
+    assert t3.shape == (1, 16, 12)

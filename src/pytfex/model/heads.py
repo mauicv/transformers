@@ -45,8 +45,11 @@ class InversePatch(torch.nn.Module):
 
     def forward(self, x):
         x = self.linear(x)
-        return x.reshape(
-            x.shape[0],
+        return x
+
+    def get_images(self, patches):
+        return patches.reshape(
+            patches.shape[0],
             self.in_channels,
             self.img_size[0],
             self.img_size[1]
