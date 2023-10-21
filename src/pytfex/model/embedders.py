@@ -76,3 +76,22 @@ class PatchEmbedder(torch.nn.Module):
         patches = patches.contiguous().view(b, c, -1, p_h, p_w)
         patches = patches.view(b, -1, c * p_h * p_w)
         return patches
+
+
+class PositionEmbedder(torch.nn.Module):
+    def __init__(
+        self, 
+        number_positions: int,
+        hidden_dim: int,
+    ):
+        super(PositionEmbedder, self).__init__()
+        self.pos_emb = torch.nn.Embedding(
+            number_positions,
+            hidden_dim
+        )
+
+
+    def forward(self, l, b):
+        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
+        positions = torch.arange(0, l).expand(b, -1).to(device)
+        return self.pos_emb(positions)

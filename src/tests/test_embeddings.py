@@ -1,5 +1,5 @@
 import torch
-from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder
+from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder
 
 
 def test_token_position_embedder():
@@ -25,3 +25,12 @@ def test_patch_embedder():
     assert t2.shape == (1, 16, 7*7)
     t3 = embedder(t2)
     assert t3.shape == (1, 16, 12)
+
+
+def test_position_embedder():
+    embedder = PositionEmbedder(
+        number_positions=10,
+        hidden_dim=12
+    )
+    t = embedder(5, 64)
+    assert t.shape == (64, 5, 12)
