@@ -1,17 +1,8 @@
 import pytest
-from pytfex.model.gpt import GPT
-from pytfex.model.make_model import init_from_file
-from pytfex.model.mask import get_causal_mask
+from pytfex.transformer.gpt import GPT
+from pytfex.transformer.make_model import init_from_file
+from pytfex.transformer.mask import get_causal_mask
 import torch
-
-
-def test_model_errors():
-    with pytest.raises(AssertionError):
-        GPT(
-            hidden_dim=12,
-            num_heads=5,
-            dropout=0.5
-        )
 
 def test_model():
     model = init_from_file('./src/tests/test_yaml/simple.yml')

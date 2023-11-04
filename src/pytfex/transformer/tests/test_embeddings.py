@@ -1,6 +1,6 @@
 import torch
 import pytest
-from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder
+from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder
 
 
 def test_token_position_embedder():

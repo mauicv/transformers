@@ -1,4 +1,4 @@
-from pytfex.model.base import BaseTransformer
+from pytfex.transformer.base import BaseTransformer
 import torch.nn as nn
 import torch
 

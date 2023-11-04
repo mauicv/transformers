@@ -3,12 +3,12 @@ import os
 import copy
 #--------------------------------------------------------------------------
 # These imports are necessary to make the code work, see globals() below!
-from pytfex.model.layer import TransformerLayer
-from pytfex.model.attention import Attention
-from pytfex.model.mlp import MLP
-from pytfex.model.gpt import GPT
-from pytfex.model.heads import ClassificationHead, InversePatch
-from pytfex.model.embedders import TokenPositionEmbedder, PatchEmbedder, \
+from pytfex.transformer.layer import TransformerLayer
+from pytfex.transformer.attention import Attention
+from pytfex.transformer.mlp import MLP
+from pytfex.transformer.gpt import GPT
+from pytfex.transformer.heads import ClassificationHead, InversePatch
+from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, \
     PositionEmbedder
 #--------------------------------------------------------------------------
 

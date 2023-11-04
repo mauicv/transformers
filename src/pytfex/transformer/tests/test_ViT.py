@@ -1,5 +1,5 @@
 
-from pytfex.model.make_model import init_from_yml_string
+from pytfex.transformer.make_model import init_from_yml_string
 import torch
 
 def test_ViT():

@@ -1,5 +1,5 @@
-from pytfex.model.attention import Attention
-from pytfex.model.mlp import MLP
+from pytfex.transformer.attention import Attention
+from pytfex.transformer.mlp import MLP
 import torch
 
 

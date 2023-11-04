@@ -1,4 +1,4 @@
-from pytfex.model.heads import ClassificationHead, InversePatch
+from pytfex.transformer.heads import ClassificationHead, InversePatch
 import pytest
 import torch
 
