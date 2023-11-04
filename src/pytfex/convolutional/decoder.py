@@ -1,4 +1,5 @@
 import torch.nn as nn
+from typing import Optional
 from pytfex.convolutional.resnet import ResnetBlock
 from pytfex.convolutional.torch_modules import get_conv, get_norm, get_rep_pad, get_upsample
 from pytfex.convolutional.torch_modules import get_nonlinearity
@@ -43,8 +44,14 @@ class UpSampleBlock(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self, in_filters, out_filters, num_residual) -> None:
+    def __init__(
+            self,
+            in_filters: int,
+            out_filters: int,
+            num_residual: int
+        ) -> None:
         super().__init__()
+
         self.components = nn.ModuleList()
         for _ in range(num_residual):
             self.components.append(ResnetBlock(
@@ -61,12 +68,14 @@ class DecoderLayer(nn.Module):
             x = component(x)
         return x
 
+
 class Decoder(nn.Module):
     def __init__(
             self,
-            nc, 
-            ndf,
-            layers,
+            nc: int, 
+            ndf: int,
+            layers: list[nn.Module],
+            output_activation: Optional[nn.Module]=None
         ):
         super(Decoder, self).__init__()
 
@@ -77,12 +86,13 @@ class Decoder(nn.Module):
             out_channels=nc,
             kernel_size=1
         )
-
+        self.output_activation = output_activation
         self.layers = layers
 
     def forward(self, z):
-        print(z.shape)
         for layer in self.layers:
             z = layer(z)
         x = self.output_conv(z)
+        if self.output_activation:
+            x = self.output_activation(x)
         return x

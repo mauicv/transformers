@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch.nn.utils.parametrizations import weight_norm
 import torch
-
+from typing import Literal
 
 def get_conv(*args, with_weight_norm=True, **kwargs):
     conv_layer = nn.Conv2d(*args, **kwargs)
@@ -24,9 +24,11 @@ def get_upsample():
 def swish(x):
     return x*torch.sigmoid(x)
 
+ActType = Literal['identity', 'swish', 'relu', 'leakyrelu', 'tanh', 'sigmoid', 'ELU']
 
-def get_nonlinearity(type='ELU'):
+def get_nonlinearity(type: ActType='ELU'):
     return {
+        'identity': lambda: lambda x: x,
         'swish': lambda: swish,
         'relu': lambda: torch.nn.ReLU(),
         'leakyrelu': lambda: torch.nn.LeakyReLU(0.2),

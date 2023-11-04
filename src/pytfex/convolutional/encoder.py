@@ -1,7 +1,8 @@
 import torch.nn as nn
 from pytfex.convolutional.resnet import ResnetBlock
 from pytfex.convolutional.torch_modules import get_conv, get_norm
-from pytfex.convolutional.torch_modules import get_nonlinearity
+from pytfex.convolutional.torch_modules import get_nonlinearity, ActType
+from typing import Optional, Literal
 
 
 class DownSampleBlock(nn.Module):
@@ -39,7 +40,12 @@ class DownSampleBlock(nn.Module):
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self, in_channels, out_channels, num_residual) -> None:
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            num_residual: int
+        ) -> None:
         super().__init__()
         self.components = nn.ModuleList()
         for _ in range(num_residual):
@@ -48,21 +54,24 @@ class EncoderLayer(nn.Module):
                 out_channels=out_channels,
             ))
             in_channels = out_channels
-        self.components.append(DownSampleBlock.default(in_channels, out_channels))
+        self.components.append(DownSampleBlock.default(
+            in_channels,
+            out_channels
+        ))
 
     def forward(self, x):
         for component in self.components:
             x = component(x)
         return x
-    
 
 
 class Encoder(nn.Module):
     def __init__(
             self,
-            nc,
-            ndf,
-            layers
+            nc: int, 
+            ndf: int,
+            layers: list[nn.Module],
+            output_layer: Optional[nn.Module]=None
         ):
         super(Encoder, self).__init__()
         self.nc = nc
@@ -77,8 +86,8 @@ class Encoder(nn.Module):
         self.input_norm = get_norm()(ndf)
         self.input_activation = get_nonlinearity('ELU')
         self.input_dropout = nn.Dropout(0.1)
-        layers = layers
         self.layers = layers
+        self.output_layer = output_layer
 
     def forward(self, x):
         x = self.input_conv(x)
@@ -87,6 +96,8 @@ class Encoder(nn.Module):
         x = self.input_dropout(x)
         for layer in self.layers:
             x = layer(x)
+        if self.output_layer:
+            x = self.output_layer(x)
         return x
 
     def loss(self, x, y, layer_inds=None):
@@ -107,3 +118,28 @@ class Encoder(nn.Module):
                 ry = y.reshape(batch_size, -1)
                 sum = sum + ((rx - ry)**2).mean(-1)
         return sum
+
+
+class OutputLayer(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            activation: ActType='identity'
+        ):
+        super().__init__()
+        self.conv = get_conv(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=1,
+            stride=1,
+            padding=0
+        )
+        self.norm = get_norm()(out_channels)
+        self.activation = get_nonlinearity(activation)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.norm(x)
+        x = self.activation(x)
+        return x
