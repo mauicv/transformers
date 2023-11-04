@@ -74,7 +74,8 @@ class PatchEmbedder(torch.nn.Module):
         p_h, p_w = self.patch_size
         patches = images.unfold(2, p_h, p_h).unfold(3, p_w, p_w)
         patches = patches.contiguous().view(b, c, -1, p_h, p_w)
-        patches = patches.view(b, -1, c * p_h * p_w)
+        patches = patches.transpose(1, 2)
+        patches = patches.reshape(b, -1, c * p_h * p_w)
         return patches
 
 
