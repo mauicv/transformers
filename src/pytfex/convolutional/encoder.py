@@ -86,7 +86,7 @@ class Encoder(nn.Module):
         self.input_norm = get_norm()(ndf)
         self.input_activation = get_nonlinearity('ELU')
         self.input_dropout = nn.Dropout(0.1)
-        self.layers = layers
+        self.layers = nn.ModuleList(layers)
         self.output_layer = output_layer
 
     def forward(self, x):

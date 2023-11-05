@@ -87,7 +87,7 @@ class Decoder(nn.Module):
             kernel_size=1
         )
         self.output_activation = output_activation
-        self.layers = layers
+        self.layers = nn.ModuleList(layers)
 
     def forward(self, z):
         for layer in self.layers:
