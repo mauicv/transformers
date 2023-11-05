@@ -20,7 +20,7 @@ def test_encoder_model_config():
                 out_channels: 128
                 num_residual: 1
         output_layer:
-            type: 'OutputLayer'
+            type: 'ConvolutionalLayer'
             params:
                 in_channels: 128
                 out_channels: 4
@@ -52,9 +52,15 @@ def test_decoder_model_config():
                 in_filters: 64
                 out_filters: 32
                 num_residual: 2
+        input_layer:
+            type: 'ConvolutionalLayer'
+            params:
+                in_channels: 4
+                out_channels: 128
+                activation: 'identity'
     """
     model = init_from_yml_string(config)
-    t1 = torch.randn(1, 128,  32, 32)
+    t1 = torch.randn(1, 4,  32, 32)
     t2 = model(t1)
     assert t2.shape == (1, 3, 128, 128)
     assert torch.all(t2 >= -1.0)

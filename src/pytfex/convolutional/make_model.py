@@ -4,8 +4,9 @@ import copy
 #--------------------------------------------------------------------------
 # These imports are necessary to make the code work, see globals() below!
 from pytfex.convolutional.resnet import ResnetBlock
-from pytfex.convolutional.encoder import EncoderLayer, Encoder, OutputLayer
+from pytfex.convolutional.encoder import EncoderLayer, Encoder
 from pytfex.convolutional.decoder import DecoderLayer, Decoder
+from pytfex.convolutional.layers import ConvolutionalLayer
 from torch.nn import Tanh, Sigmoid
 #--------------------------------------------------------------------------
 

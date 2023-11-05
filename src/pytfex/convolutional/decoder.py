@@ -75,7 +75,8 @@ class Decoder(nn.Module):
             nc: int, 
             ndf: int,
             layers: list[nn.Module],
-            output_activation: Optional[nn.Module]=None
+            output_activation: Optional[nn.Module]=None,
+            input_layer: Optional[nn.Module]=None
         ):
         super(Decoder, self).__init__()
 
@@ -88,8 +89,11 @@ class Decoder(nn.Module):
         )
         self.output_activation = output_activation
         self.layers = nn.ModuleList(layers)
+        self.input_layer = input_layer
 
     def forward(self, z):
+        if self.input_layer:
+            z = self.input_layer(z)
         for layer in self.layers:
             z = layer(z)
         x = self.output_conv(z)
