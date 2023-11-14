@@ -102,3 +102,30 @@ class PositionEmbedder(torch.nn.Module):
         device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
         positions = torch.arange(0, l).expand(b, -1).to(device)
         return x + self.pos_emb(positions)
+
+
+class LinearEmbedder(torch.nn.Module):
+    def __init__(
+        self, 
+        number_positions: int,
+        input_dim: int,
+        hidden_dim: int,
+    ):
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.linear = torch.nn.Linear(
+            self.input_dim,
+            self.hidden_dim
+        )
+        self.pos_emb = torch.nn.Embedding(
+            number_positions,
+            hidden_dim
+        )
+
+    def forward(self, x):
+        b, l, _ = x.shape
+        x = self.linear(x)
+        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
+        positions = torch.arange(0, l).expand(b, -1).to(device)
+        return x + self.pos_emb(positions)

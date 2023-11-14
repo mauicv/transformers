@@ -1,6 +1,7 @@
 import torch
 import pytest
-from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder
+from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder, \
+    LinearEmbedder
 
 
 def test_token_position_embedder():
@@ -45,3 +46,14 @@ def test_position_embedder():
     x = x.expand(-1, 5, -1)
     t = embedder(x)
     assert t.shape == (64, 5, 12)
+
+
+def test_linear_embedder():
+    embedder = LinearEmbedder(
+        number_positions=10,
+        input_dim=4,
+        hidden_dim=128
+    )
+    x = torch.randn((64, 10, 4))
+    t = embedder(x)
+    assert t.shape == (64, 10, 128)
