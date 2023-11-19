@@ -1,4 +1,4 @@
-from pytfex.model.make_model import init_from_config
+from pytfex.transformer.make_model import init_from_config
 import torch
 import yaml
 import os

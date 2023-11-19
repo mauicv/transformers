@@ -1,4 +1,4 @@
-from pytfex.model.make_model import init_from_config as init_model_from_config
+from pytfex.transformer.make_model import init_from_config as init_model_from_config
 from pytfex.experiment.make_experiment import init_from_config as init_exp_from_config
 from torch.optim import AdamW
 from torch.nn import CrossEntropyLoss

@@ -1,7 +1,7 @@
 from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
 
-from pytfex.model.make_model import init_from_yml_string
+from pytfex.transformer.make_model import init_from_yml_string
 from pytfex.utils import set_seed
 
 import torch
