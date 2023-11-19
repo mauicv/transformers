@@ -173,11 +173,17 @@ def test_ViT3():
       num_heads: 4
       dropout: 0.5
       embedder:
-        type: 'LinearEmbedder'
+        type: 'MultiEmbedder'
         params:
-          number_positions: 5
-          input_dim: 10
-          hidden_dim: {hdn_dim}
+          embedders:
+            - type: 'LinearEmbedder' 
+              params:
+                input_dim: 10
+                hidden_dim: {hdn_dim}
+            - type: 'PositionEmbedder'
+              params:
+                num_positions: 5
+                hidden_dim: {hdn_dim}
       head:
         type: 'ClassificationHead'
         params:

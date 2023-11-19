@@ -5,11 +5,17 @@ params:
   num_heads: 4
   dropout: 0.5
   embedder:
-    type: 'TokenPositionEmbedder'
+    type: 'MultiEmbedder'
     params:
-      max_sequence_length: 512
-      dictionary_size: 1000
-      hidden_dim: 12
+      embedders:
+        - type: 'TokenEmbedder' 
+          params:
+            dictionary_size: 1000
+            hidden_dim: 12
+        - type: 'PositionEmbedder'
+          params:
+            num_positions: 512
+            hidden_dim: 12
   layers:
     - num: 2
       type: 'TransformerLayer'

@@ -8,8 +8,8 @@ from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
-from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, \
-    PositionEmbedder, LinearEmbedder
+from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
+    MultiEmbedder, PatchEmbedder, LinearEmbedder
 #--------------------------------------------------------------------------
 
 # TODO: udpate this for model state loading in init_from_config
