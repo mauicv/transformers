@@ -77,7 +77,6 @@ def _init_from_config(
             objs.append(_init_from_config(copied_config))
         return objs
     else:
-        print(config)
         obj_type = config['type']
         obj_params = config['params']
         for key, value in obj_params.items():
