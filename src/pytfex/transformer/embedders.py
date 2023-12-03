@@ -3,22 +3,43 @@ from typing import Tuple, Union
 from pytfex.utils import make_tuple
 
 
-class TokenPositionEmbedder(torch.nn.Module):
+class MultiEmbedder(torch.nn.Module):
+    def __init__(self, embedders: Tuple[torch.nn.Module]):
+        super(MultiEmbedder, self).__init__()
+        self.embedders = torch.nn.ModuleList(embedders)
+
+    def forward(self, x):
+        return sum([embedder(x) for embedder in self.embedders])
+
+
+class TokenEmbedder(torch.nn.Module):
     def __init__(
-            self, 
-            max_sequence_length: int=None,
+            self,
             dictionary_size: int=None,
             hidden_dim: int=None,
         ):
-        super(TokenPositionEmbedder, self).__init__()
-
-        self.pos_emb = torch.nn.Embedding(
-            max_sequence_length,
-            hidden_dim
-        )
+        super(TokenEmbedder, self).__init__()
 
         self.tok_emb = torch.nn.Embedding(
             dictionary_size,
+            hidden_dim
+        )
+
+    def forward(self, x):
+        x = self.tok_emb(x)
+        return x
+
+
+class PositionEmbedder(torch.nn.Module):
+    def __init__(
+            self, 
+            num_positions: int=None,
+            hidden_dim: int=None,
+        ):
+        super(PositionEmbedder, self).__init__()
+
+        self.pos_emb = torch.nn.Embedding(
+            num_positions,
             hidden_dim
         )
 
@@ -28,8 +49,26 @@ class TokenPositionEmbedder(torch.nn.Module):
             .expand(x.shape[0], -1)
             .to(x.device)
         )
-        x = self.tok_emb(x) + self.pos_emb(positions)
+        x = self.pos_emb(positions)
         return x
+
+
+class LinearEmbedder(torch.nn.Module):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+    ):
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.linear = torch.nn.Linear(
+            self.input_dim,
+            self.hidden_dim
+        )
+
+    def forward(self, x):
+        return self.linear(x)
 
 
 class PatchEmbedder(torch.nn.Module):
@@ -53,11 +92,6 @@ class PatchEmbedder(torch.nn.Module):
             ((img_size[0] - patch_size[0]) // self.stride[0] + 1) *
             ((img_size[1] - patch_size[1]) // self.stride[1] + 1)
         )
-
-        self.pos_emb = torch.nn.Embedding(
-            self.num_patches,
-            hidden_dim
-        )
         
         self.linear = torch.nn.Linear(
             in_channels * patch_size[0] * patch_size[1],
@@ -65,14 +99,7 @@ class PatchEmbedder(torch.nn.Module):
         )
 
     def forward(self, X):
-        P = self.linear(X)
-        _, l, _ = P.shape
-        positions = (torch
-            .arange(0, l)
-            .expand(P.shape[0], -1)
-            .to(P.device)
-        )
-        return P + self.pos_emb(positions)
+        return self.linear(X)
 
     def get_patches(self, images):
         b, c, _, _ = images.shape
@@ -83,49 +110,3 @@ class PatchEmbedder(torch.nn.Module):
         patches = patches.transpose(1, 2)
         patches = patches.reshape(b, -1, c * p_h * p_w)
         return patches
-
-
-class PositionEmbedder(torch.nn.Module):
-    def __init__(
-        self, 
-        number_positions: int,
-        hidden_dim: int,
-    ):
-        super(PositionEmbedder, self).__init__()
-        self.pos_emb = torch.nn.Embedding(
-            number_positions,
-            hidden_dim
-        )
-
-    def forward(self, x):
-        b, l, _ = x.shape
-        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
-        positions = torch.arange(0, l).expand(b, -1).to(device)
-        return x + self.pos_emb(positions)
-
-
-class LinearEmbedder(torch.nn.Module):
-    def __init__(
-        self, 
-        number_positions: int,
-        input_dim: int,
-        hidden_dim: int,
-    ):
-        super().__init__()
-        self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.linear = torch.nn.Linear(
-            self.input_dim,
-            self.hidden_dim
-        )
-        self.pos_emb = torch.nn.Embedding(
-            number_positions,
-            hidden_dim
-        )
-
-    def forward(self, x):
-        b, l, _ = x.shape
-        x = self.linear(x)
-        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
-        positions = torch.arange(0, l).expand(b, -1).to(device)
-        return x + self.pos_emb(positions)

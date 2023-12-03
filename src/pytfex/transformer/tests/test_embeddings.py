@@ -1,15 +1,26 @@
 import torch
 import pytest
-from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, PositionEmbedder, \
-    LinearEmbedder
+from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
+    MultiEmbedder, PatchEmbedder, LinearEmbedder
 
 
 def test_token_position_embedder():
-    embedder = TokenPositionEmbedder(
-        max_sequence_length=100,
+    token_embedder = TokenEmbedder(
         dictionary_size=100,
         hidden_dim=12
     )
+    position_embedder = PositionEmbedder(
+        num_positions=100,
+        hidden_dim=12
+    )
+
+    embedder = MultiEmbedder(
+        embedders=(
+            token_embedder,
+            position_embedder
+        )
+    )
+
     t1 = torch.randint(100, (1, 10))
     t2 = embedder(t1)
     assert t2.shape == (1, 10, 12)
@@ -39,7 +50,7 @@ def test_patch_embedder(overlap, num_patches):
 
 def test_position_embedder():
     embedder = PositionEmbedder(
-        number_positions=10,
+        num_positions=10,
         hidden_dim=12
     )
     x = torch.randn((64, 1, 12))
@@ -50,7 +61,6 @@ def test_position_embedder():
 
 def test_linear_embedder():
     embedder = LinearEmbedder(
-        number_positions=10,
         input_dim=4,
         hidden_dim=128
     )

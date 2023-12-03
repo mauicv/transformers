@@ -1,4 +1,5 @@
-from pytfex.transformer.make_model import init_from_config
+from pytfex.transformer.make_model import init_from_config, TransformerObjectRegistry, \
+    init_from_yml_string
 import torch
 import yaml
 import os
@@ -29,3 +30,22 @@ def test_model_config_load_state(tmpdir):
 
     for layer_1, layer_2 in zip(model_1.layers, model_2.layers):
         assert torch.allclose(layer_1.attn.qkv.weight, layer_2.attn.qkv.weight)
+
+
+def test_custom_module_init():
+    @TransformerObjectRegistry.register('CustomModule')
+    class CustomModule(torch.nn.Module):
+        def __init__(self, s):
+            super().__init__()
+            self.s = s
+
+        def forward(self, x):
+            return x * self.s
+
+    model = init_from_yml_string("""
+    type: 'CustomModule'
+    params:
+        s: 2
+    """)
+
+    assert model(torch.tensor([1.])) == torch.tensor([2.])

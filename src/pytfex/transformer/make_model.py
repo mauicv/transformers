@@ -1,16 +1,40 @@
 import yaml
 import os
 import copy
-#--------------------------------------------------------------------------
-# These imports are necessary to make the code work, see globals() below!
+
 from pytfex.transformer.layer import TransformerLayer
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
-from pytfex.transformer.embedders import TokenPositionEmbedder, PatchEmbedder, \
-    PositionEmbedder, LinearEmbedder
-#--------------------------------------------------------------------------
+from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
+    MultiEmbedder, PatchEmbedder, LinearEmbedder
+
+
+class TransformerObjectRegistry:
+    _registry = {
+        'TransformerLayer': TransformerLayer,
+        'Attention': Attention,
+        'MLP': MLP,
+        'GPT': GPT,
+        'ClassificationHead': ClassificationHead,
+        'InversePatch': InversePatch,
+        'TokenEmbedder': TokenEmbedder,
+        'PositionEmbedder': PositionEmbedder,
+        'MultiEmbedder': MultiEmbedder,
+        'PatchEmbedder': PatchEmbedder,
+        'LinearEmbedder': LinearEmbedder
+    }
+    
+    def register(name):
+        def decorator(cls):
+            TransformerObjectRegistry._registry[name] = cls
+            return cls
+        return decorator
+    
+    def get(name):
+        return TransformerObjectRegistry._registry[name]
+
 
 # TODO: udpate this for model state loading in init_from_config
 def init_from_file(config_path):
@@ -67,7 +91,7 @@ def _init_from_config(
                     else:
                         obj_list.append(obj_item)
                 obj_params[key] = obj_list
-        obj = globals()[obj_type](**obj_params)
+        obj = TransformerObjectRegistry.get(obj_type)(**obj_params)
 
     if load_state:
         obj = _load_obj_state(obj, config, path, model_path)

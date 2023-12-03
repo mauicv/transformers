@@ -42,11 +42,17 @@ def test_train():
       num_heads: 4
       dropout: 0.5
       embedder:
-        type: 'TokenPositionEmbedder'
+        type: 'MultiEmbedder'
         params:
-          max_sequence_length: {blk_size}
-          dictionary_size: {vcb_size}
-          hidden_dim: {hdn_dim}
+          embedders:
+            - type: 'TokenEmbedder' 
+              params:
+                dictionary_size: {vcb_size}
+                hidden_dim: {hdn_dim}
+            - type: 'PositionEmbedder'
+              params:
+                num_positions: {blk_size}
+                hidden_dim: {hdn_dim}
       head:
         type: 'ClassificationHead'
         params:
