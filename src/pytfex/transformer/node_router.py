@@ -104,7 +104,7 @@ class NodeRouter(torch.nn.Module):
             x (RouteTensor): Input tensors to be routed, shapes 
                 ((l, h, d), ...) where l is the sequence length/node count
                 h is the number of heads, and d is the hidden dimension.
-                The tensors are grouped by node.
+                The tensors are grouped by sequence order.
         
         Returns:
             x (RouteTensor): The input tensors multiplied by the gate
@@ -119,8 +119,8 @@ class NodeRouter(torch.nn.Module):
         head_items = []
         node_items = []
         for item, x_item in zip(v.to_batches(), x.to_batches()):
-            # TODO: apply softmax to each head separately
-            # print(item.shape)
+            # TODO: apply softmax/(or normalization?) to each head
+            # separately
 
             val, ind = torch.topk(item, self.k, dim=-1)
             node_head = ind % self.num_heads
