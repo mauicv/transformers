@@ -1,6 +1,6 @@
 from typing import List
 import torch
-from pytfex.transformer.node_router import RouteTensor
+from pytfex.transformer.node_router import RouteTensor, NodeRouter
 
 
 class LinearNodes(torch.nn.Module):
@@ -94,3 +94,33 @@ class MLPNodes(torch.nn.Module):
         x = x.apply(self.mlp_dropout)
         return x
 
+
+class RoutingModelLayer(torch.nn.Module):
+    def __init__(
+            self,
+            num_nodes: int,
+            num_heads: int,
+            hidden_dim: int,
+            k: int,
+            dropout: float=0.5,
+        ):
+        super(RoutingModelLayer, self).__init__()
+        self.hidden_dim = hidden_dim
+        self.num_nodes = num_nodes
+        self.router = NodeRouter(
+            hidden_dim=hidden_dim,
+            num_nodes=num_nodes,
+            num_heads=num_heads,
+            k=k,
+            dropout=dropout
+        )
+        self.mlp = MLPNodes(
+            num_nodes=num_nodes,
+            hidden_dim=hidden_dim,
+            dropout=dropout
+        )
+    
+    def forward(self, x: RouteTensor) -> RouteTensor:
+        x, inds = self.router(x)
+        x = self.mlp(x, inds)
+        return x

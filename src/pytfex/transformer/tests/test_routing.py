@@ -2,7 +2,7 @@ import torch
 from random import randint
 import pytest
 from pytfex.transformer.node_router import NodeRouter, RouteTensor
-from pytfex.transformer.node_array import LinearNodes, MLPNodes
+from pytfex.transformer.node_array import LinearNodes, MLPNodes, RoutingModelLayer
 
 
 def test_RouteTensor():
@@ -103,3 +103,22 @@ def test_MLPNodes_forward(num_nodes):
     for a, b in zip(z.shapes, y.shapes):
         assert a[0] == b[0]
         assert a[1] == b[1]
+
+
+@pytest.mark.parametrize('num_nodes', [
+    5,
+    25
+])
+def test_RoutingModelLayer_forward(num_nodes):
+    layer = RoutingModelLayer(
+        hidden_dim=128,
+        num_nodes=num_nodes,
+        num_heads=2,
+        k=3,
+        dropout=0.5,
+    )
+    a = torch.randn((4, 128))
+    b = torch.randn((4, 128))
+    x = RouteTensor(data=[a, b])
+    y = layer(x)
+    assert len(x.shapes) == len(y.shapes)

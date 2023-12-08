@@ -1,30 +1,34 @@
 from pytfex.transformer.base import BaseTransformer
+from pytfex.transformer.node_router import RouteTensor
+from pytfex.transformer.node_array import RoutingModelLayer
 import torch.nn as nn
 import torch
 
 
-class RoutingNet(torch.nn.Module, BaseTransformer):
+class RoutingModel(torch.nn.Module, BaseTransformer):
     def __init__(
             self,
             hidden_dim: int,
-            num_heads: int,
-            dropout: float=0.5,
             embedder: torch.nn.Module=None,
-            nodes: list[torch.nn.Module] = [],
+            node_layers: list[RoutingModelLayer] = [],
+            head: torch.nn.Module=None,
+            dropout: float=0.5,
         ):
-        super(RoutingNet, self).__init__()
-        assert hidden_dim % num_heads == 0, "num_heads must divide hidden_dim"
+        super(RoutingModel, self).__init__()
         self.hidden_dim = hidden_dim
-        self.num_heads = num_heads
         self.dropout = dropout
 
         self.drop = nn.Dropout(dropout)
         self.embedder = embedder
-        self.nodes = torch.nn.ModuleList(nodes)
+        self.head = head
+        self.nodes = torch.nn.ModuleList(node_layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.embedder:
-            x = self.embedder(x)
-        x = self.drop(x)
-        # TODO: Magic!
+            x = x.apply(self.embedder)
+        x = x.apply(self.drop)
+        for layer in self.nodes:
+            x = layer(x)
+        if self.head:
+            x = x.apply(self.head)
         return x
