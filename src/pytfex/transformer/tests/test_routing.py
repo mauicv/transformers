@@ -1,0 +1,51 @@
+import torch
+from random import randint
+import pytest
+from pytfex.transformer.node_router import NodeRouter, RouteTensor
+
+
+def test_RouteTensor():
+    batch = [torch.randn((randint(2, 6), 128)) for _ in range(4)]
+    x = RouteTensor(data=batch)
+    assert sum([s[0] for s in x.shapes]) == x.shape[0]
+    L = torch.nn.Linear(128, 128)
+    y = x.apply(L)
+    assert x.shapes == y.shapes
+    assert x.shape == y.shape
+
+
+def test_NodeRouter():
+    router = NodeRouter(
+        hidden_dim=128,
+        num_nodes=5,
+        num_heads=2,
+        k=3,
+    )
+    a = torch.randn((4, 128))
+    b = torch.randn((4, 128))
+    x = RouteTensor(data=[a, b])
+    y, node_i, head_i = router._match_gates(x)
+    # y.shape -> ((len(x), head, hidden_dim), ...)
+    assert y.shapes == ((4, 3, 128), (4, 3, 128))
+    assert node_i.shapes == ((4, 3), (4, 3))
+    assert head_i.shapes == ((4, 3), (4, 3))
+
+
+@pytest.mark.parametrize('num_nodes', [
+    5,
+    25
+])
+def test_NodeArray(num_nodes):
+    router = NodeRouter(
+        hidden_dim=128,
+        num_nodes=num_nodes,
+        num_heads=2,
+        k=3
+    )
+    a = torch.randn((4, 128))
+    b = torch.randn((4, 128))
+    x = RouteTensor(data=[a, b])
+    z, node_i = router(x)
+    for a, b in zip(z.shapes, node_i.shapes):
+        assert a[0] == b[0]
+    
