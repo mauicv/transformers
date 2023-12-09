@@ -6,6 +6,7 @@ from pytfex.transformer.node_router import RouteTensor
 from pytfex.transformer.node_array import RoutingModelLayer
 from pytfex.transformer.routing_net import RoutingModel
 from pytfex.transformer.heads import ClassificationHead
+from pytfex.transformer.embedders import TokenEmbedder
 
 
 @pytest.fixture
@@ -36,8 +37,12 @@ def model():
 
     model = RoutingModel(
         hidden_dim=128,
-        node_layers=layers,
+        layers=layers,
         dropout=0.1,
+        embedder=TokenEmbedder(
+            dictionary_size=10,
+            hidden_dim=128
+        ),
         head=ClassificationHead(
             hidden_dim=128,
             vocab_size=10
@@ -47,8 +52,8 @@ def model():
 
 
 def test_RoutingModel(model):
-    a = torch.randn((4, 128))
-    b = torch.randn((4, 128))
+    a = torch.randint(0, 10, (4, ))
+    b = torch.randint(0, 10, (4, ))
     x = RouteTensor(data=[a, b])
     y = model(x)
     assert y.shapes == ((1, 10), (1, 10))
@@ -57,8 +62,8 @@ def test_RoutingModel(model):
 def test_RoutingModel_grad(model):
     opt = torch.optim.Adam(model.parameters())
     opt.zero_grad()
-    a = torch.randn((4, 128))
-    b = torch.randn((4, 128))
+    a = torch.randint(0, 10, (4, ))
+    b = torch.randint(0, 10, (4, ))
     x = RouteTensor(data=[a, b])
     y = model(x)
     lab = torch.randint(0, 10, (2,))

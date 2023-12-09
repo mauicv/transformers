@@ -10,7 +10,7 @@ class RoutingModel(torch.nn.Module, BaseTransformer):
             self,
             hidden_dim: int,
             embedder: torch.nn.Module=None,
-            node_layers: list[RoutingModelLayer] = [],
+            layers: list[RoutingModelLayer] = [],
             head: torch.nn.Module=None,
             dropout: float=0.5,
         ):
@@ -21,14 +21,15 @@ class RoutingModel(torch.nn.Module, BaseTransformer):
         self.drop = nn.Dropout(dropout)
         self.embedder = embedder
         self.head = head
-        self.nodes = torch.nn.ModuleList(node_layers)
+        self.layers = torch.nn.ModuleList(layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.embedder:
-            x = x.apply(self.embedder)
+            x = self.embedder(x)
         x = x.apply(self.drop)
-        for layer in self.nodes:
+        for i, layer in enumerate(self.layers):
             x = layer(x)
+            print(f'layer-{i}, {x.data.min()}, {x.data.max()}')
         if self.head:
             x = x.apply(self.head)
         return x

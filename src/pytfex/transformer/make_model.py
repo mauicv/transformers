@@ -9,6 +9,7 @@ from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
 from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
     MultiEmbedder, PatchEmbedder, LinearEmbedder
+from pytfex.transformer.routing_net import RoutingModel, RoutingModelLayer
 
 
 class TransformerObjectRegistry:
@@ -23,7 +24,9 @@ class TransformerObjectRegistry:
         'PositionEmbedder': PositionEmbedder,
         'MultiEmbedder': MultiEmbedder,
         'PatchEmbedder': PatchEmbedder,
-        'LinearEmbedder': LinearEmbedder
+        'LinearEmbedder': LinearEmbedder,
+        'RoutingModel': RoutingModel,
+        'RoutingModelLayer': RoutingModelLayer
     }
     
     def register(name):

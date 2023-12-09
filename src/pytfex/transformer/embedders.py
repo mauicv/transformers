@@ -1,6 +1,7 @@
 import torch
 from typing import Tuple, Union
 from pytfex.utils import make_tuple
+from pytfex.transformer.node_router import RouteTensor
 
 
 class MultiEmbedder(torch.nn.Module):
@@ -9,7 +10,13 @@ class MultiEmbedder(torch.nn.Module):
         self.embedders = torch.nn.ModuleList(embedders)
 
     def forward(self, x):
-        return sum([embedder(x) for embedder in self.embedders])
+        zero = 0
+        if isinstance(x, RouteTensor):
+            zero = RouteTensor(
+                data=torch.zeros((x.data.shape[0], self.embedders[0].hidden_dim)),
+                batch_inds=x.batch_inds
+            )
+        return sum([embedder(x) for embedder in self.embedders], zero)
 
 
 class TokenEmbedder(torch.nn.Module):
@@ -19,6 +26,7 @@ class TokenEmbedder(torch.nn.Module):
             hidden_dim: int=None,
         ):
         super(TokenEmbedder, self).__init__()
+        self.hidden_dim = hidden_dim
 
         self.tok_emb = torch.nn.Embedding(
             dictionary_size,
@@ -26,7 +34,10 @@ class TokenEmbedder(torch.nn.Module):
         )
 
     def forward(self, x):
-        x = self.tok_emb(x)
+        if isinstance(x, torch.Tensor):
+            x = self.tok_emb(x)
+        elif isinstance(x, RouteTensor):
+            x = x.apply(self.tok_emb)
         return x
 
 
@@ -37,6 +48,7 @@ class PositionEmbedder(torch.nn.Module):
             hidden_dim: int=None,
         ):
         super(PositionEmbedder, self).__init__()
+        self.hidden_dim = hidden_dim
 
         self.pos_emb = torch.nn.Embedding(
             num_positions,
@@ -44,12 +56,22 @@ class PositionEmbedder(torch.nn.Module):
         )
 
     def forward(self, x):
-        positions = (torch
-            .arange(0, x.shape[1])
-            .expand(x.shape[0], -1)
-            .to(x.device)
-        )
-        x = self.pos_emb(positions)
+        if isinstance(x, torch.Tensor):
+            positions = (torch
+                .arange(0, x.shape[1])
+                .expand(x.shape[0], -1)
+                .to(x.device)
+            )
+            x = self.pos_emb(positions)
+        elif isinstance(x, RouteTensor):
+            embedded_x = []
+            for item in x.to_batches():
+                positions = (torch
+                    .arange(0, item.shape[0])
+                    .to(x.device)
+                )
+                embedded_x.append(self.pos_emb(positions))
+            x = RouteTensor(data=embedded_x)
         return x
 
 
@@ -68,7 +90,11 @@ class LinearEmbedder(torch.nn.Module):
         )
 
     def forward(self, x):
-        return self.linear(x)
+        if isinstance(x, torch.Tensor):
+            x = self.linear(x)
+        elif isinstance(x, RouteTensor):
+            x = x.apply(self.linear)
+        return x
 
 
 class PatchEmbedder(torch.nn.Module):
@@ -83,6 +109,7 @@ class PatchEmbedder(torch.nn.Module):
             in_channels: int,
         ):
         super().__init__()
+        self.hidden_dim = hidden_dim
         img_size, patch_size, overlap = \
             make_tuple(img_size), make_tuple(patch_size), make_tuple(overlap)
         self.patch_size = patch_size

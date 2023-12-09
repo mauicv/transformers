@@ -4,12 +4,21 @@ import torch
 class RouteTensor:
     def __init__(self,
             data: Union[Tuple[torch.Tensor], List[torch.Tensor], torch.Tensor],
-            batch_inds: Optional[torch.Tensor]=None
+            batch_inds: Optional[torch.Tensor]=None,
+            device: torch.device='cpu',
         ) -> None:
 
-        if isinstance(data, torch.Tensor):
+        if isinstance(data, torch.Tensor) and batch_inds is not None:
             self.data = data
             self.batch_inds = batch_inds
+
+        elif isinstance(data, torch.Tensor) and batch_inds is None:
+            inds = [0]
+            for d in data:
+                inds.append(inds[-1] + len(d))
+            self.data = data.reshape(-1)
+            self.batch_inds = torch.tensor(inds)
+            # self.batch_inds = torch.tensor([0, len(data)])
 
         if isinstance(data, (list, tuple)):
             inds = [0]
@@ -17,6 +26,9 @@ class RouteTensor:
                 inds.append(inds[-1] + len(d))
             self.batch_inds = torch.tensor(inds)
             self.data = torch.cat(data, dim=0)
+
+        self.device = device
+        self.to(self.device)
 
     def to_batches(self) -> torch.Tensor:
         for i in range(len(self.batch_inds) - 1):
@@ -38,6 +50,25 @@ class RouteTensor:
     @property
     def shapes(self) -> torch.Size:
         return tuple(t.shape for t in self.to_batches())
+    
+    def to(self, device: torch.device) -> 'RouteTensor':
+        # NOTE: This mutates the object in place, i'm not sure this
+        # is the same behavior as the torch.Tensor.to() method...
+        self.device = device
+        self.data = self.data.to(device)
+        return self
+
+    def __add__(self, other) -> 'RouteTensor':
+        if isinstance(other, torch.Tensor):
+            other_data = other
+        elif isinstance(other, RouteTensor):
+            other_data = other.data
+        elif isinstance(other, (int, float)):
+            other_data = other
+        return RouteTensor(
+            data=self.data + other_data,
+            batch_inds=self.batch_inds
+        )
 
 
 class NodeRouter(torch.nn.Module):
@@ -87,7 +118,9 @@ class NodeRouter(torch.nn.Module):
 
     def forward(self, x: RouteTensor) -> RouteTensor:
         x, node_items, head_items = self._match_gates(x)
+        print(f'NodeRouter.forward-after _match_gates, {x.data.min()}, {x.data.max()}')
         x, node_ind = self._route_tensors(x, node_items, head_items)
+        print(f'NodeRouter.forward -after _route_tensors, {x.data.min()}, {x.data.max()}')
         return x, node_ind
     
     def _match_gates(
@@ -121,6 +154,9 @@ class NodeRouter(torch.nn.Module):
         for item, x_item in zip(v.to_batches(), x.to_batches()):
             # TODO: apply softmax/(or normalization?) to each head
             # separately
+            # TODO: Some use cases want k == num_nodes. When this 
+            # happens we could dispense with the topk but this will 
+            # require other changes.
 
             val, ind = torch.topk(item, self.k, dim=-1)
             node_head = ind % self.num_heads
