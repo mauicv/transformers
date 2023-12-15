@@ -7,13 +7,14 @@ import torch
 @pytest.mark.skip(reason="Slow running/intermittent test")
 def test_train(training_setup):
     set_seed(0)
-    dl, model, val_fn = training_setup
+    dl, model, val_fn, model_type = training_setup
     opt = torch.optim.Adam(model.parameters(), lr=1e-4)
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     loss_fn = torch.nn.CrossEntropyLoss()
     acc = val_fn(model)
 
     print('\n')
+    print(f'-- model-type : {model_type} --')
     print('epoch_|_loss_____|_acc______')
     print(f'    -1| None     | {acc:0.5}')
     for epoch in range(5):
