@@ -40,13 +40,13 @@ def get_moe_gpt_config(
                             type: 'MoEMLP'
                             params:
                                 hidden_dim: {hdn_dim}
-                                dropout: 0.5
                                 k: {k}
                                 experts:
                                     -   num: {num_experts}
                                         type: 'MLP'
                                         params:
                                             hidden_dim: {hdn_dim}
+                                            intermediate_dim: {hdn_dim}
                                             dropout: 0.5
             head:
                 type: 'ClassificationHead'

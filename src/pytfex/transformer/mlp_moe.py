@@ -11,7 +11,6 @@ class MoEMLP(torch.nn.Module):
             self,
             hidden_dim: int,
             k: int,
-            dropout: float=0.5,
             experts: List=None
         ):
         super(MoEMLP, self).__init__()

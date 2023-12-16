@@ -25,9 +25,9 @@ def training_setup(request):
     vcb_size = ds.get_vocab_size()
 
     config = {
-        'gpt-basic': get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
-        'gpt-moe': get_moe_gpt_config(vcb_size, hdn_dim, blk_size, k, num_experts)
-    }[model_type]
+        'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
+        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, k, num_experts)
+    }[model_type]()
     model = init_from_yml_string(config)
 
     def val_fn(model):
