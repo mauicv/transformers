@@ -22,3 +22,7 @@ def _parse_string_to_tuple(x):
     if not isinstance(x, str):
         return x
     return tuple(map(int, x.split(',')))
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)

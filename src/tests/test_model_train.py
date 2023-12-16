@@ -1,4 +1,4 @@
-from pytfex.utils import set_seed
+from pytfex.utils import set_seed, count_parameters
 
 import pytest
 import torch
@@ -15,6 +15,7 @@ def test_train(training_setup):
 
     print('\n')
     print(f'-- model-type : {model_type} --')
+    print(f'-- # params   : {count_parameters(model)} --')
     print('epoch_|_loss_____|_acc______')
     print(f'    -1| None     | {acc:0.5}')
     for epoch in range(5):
