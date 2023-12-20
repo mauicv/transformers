@@ -1,6 +1,6 @@
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
-from pytfex.transformer.mlp_moe import MoE
+from pytfex.transformer.moe import MoE
 import torch
 
 
