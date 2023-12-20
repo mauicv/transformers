@@ -2,14 +2,14 @@ from typing import List
 import torch
 
 
-class MoEMLP(torch.nn.Module):
+class MoE(torch.nn.Module):
     def __init__(
             self,
             hidden_dim: int,
             experts: List,
             c: int = 2,
         ):
-        """Mixture of Expert - expert choice routing MLP layer
+        """Mixture of Expert - expert choice routing layer
 
         See https://arxiv.org/pdf/2202.09368.pdf for more details.
 
@@ -19,7 +19,7 @@ class MoEMLP(torch.nn.Module):
                 many experts are utilized by a token. Defaults to 2.
             experts (List, optional): List of experts. Each expert is a torch.nn.Module.
         """
-        super(MoEMLP, self).__init__()
+        super(MoE, self).__init__()
         self.hidden_dim = hidden_dim
         self.c = c
         self.experts = torch.nn.ModuleList(experts)

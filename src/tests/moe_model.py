@@ -37,7 +37,7 @@ def get_moe_gpt_config(
                                 num_heads: 4
                                 dropout: 0.5
                         mlp:
-                            type: 'MoEMLP'
+                            type: 'MoE'
                             params:
                                 hidden_dim: {hdn_dim}
                                 c: {c}

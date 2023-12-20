@@ -1,6 +1,6 @@
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
-from pytfex.transformer.mlp_moe import MoEMLP
+from pytfex.transformer.mlp_moe import MoE
 import torch
 
 
@@ -27,7 +27,7 @@ def test_MLP():
 
 
 def test_MoE_MLP():
-    mlp = MoEMLP(
+    mlp = MoE(
         hidden_dim=12,
         c=2,
         experts=[
