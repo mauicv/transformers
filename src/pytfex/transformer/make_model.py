@@ -5,6 +5,7 @@ import copy
 from pytfex.transformer.layer import TransformerLayer
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
+from pytfex.transformer.moe import MoE
 from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
 from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
@@ -16,6 +17,7 @@ class TransformerObjectRegistry:
         'TransformerLayer': TransformerLayer,
         'Attention': Attention,
         'MLP': MLP,
+        'MoE': MoE,
         'GPT': GPT,
         'ClassificationHead': ClassificationHead,
         'InversePatch': InversePatch,
@@ -23,7 +25,8 @@ class TransformerObjectRegistry:
         'PositionEmbedder': PositionEmbedder,
         'MultiEmbedder': MultiEmbedder,
         'PatchEmbedder': PatchEmbedder,
-        'LinearEmbedder': LinearEmbedder
+        'LinearEmbedder': LinearEmbedder,
+
     }
     
     def register(name):

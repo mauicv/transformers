@@ -4,6 +4,17 @@
 
 This repo is a collection of PyTorch implementations of Transformer architectures with simple flexible config for ease of experimentation. The goal is learning and experimentation.
 
+## Tests:
+
+Tests can be run using `pytest` from the root directory. There are also online colabs that should test any new architecture added to the repo on shakespeare character prediction.
+
+1. [basic transformer](https://colab.research.google.com/drive/1cNjbbiDqeHyjGFyMnuag9RykDKL2XKLp)
+2. [MoE transformer](https://colab.research.google.com/drive/193oYMnTx8FdJDMj_NOgyOng6j9nQc7K_)
+
+As well as this each architecture and layer should be benchmarked for speed using:
+
+1. [Transformer-benchmarks](https://colab.research.google.com/drive/1hb9V6ne42awHTxKvcI0vct1SNEO7rock)
+
 
 ## Resources:
 
