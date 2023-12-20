@@ -3,7 +3,7 @@ def get_moe_gpt_config(
         hdn_dim,
         blk_size,
         num_experts,
-        k
+        c
     ):
 
     return f"""
@@ -40,7 +40,7 @@ def get_moe_gpt_config(
                             type: 'MoEMLP'
                             params:
                                 hidden_dim: {hdn_dim}
-                                k: {k}
+                                c: {c}
                                 experts:
                                     -   num: {num_experts}
                                         type: 'MLP'

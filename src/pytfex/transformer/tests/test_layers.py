@@ -29,8 +29,7 @@ def test_MLP():
 def test_MoE_MLP():
     mlp = MoEMLP(
         hidden_dim=12,
-        dropout=0.5,
-        k=3,
+        c=2,
         experts=[
             MLP(
                 hidden_dim=12,

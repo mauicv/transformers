@@ -18,7 +18,7 @@ import pytest
 def training_setup(request):
     set_seed(0)
 
-    hdn_dim, length, num_digits, batch_size, k, num_experts, model_type = request.param
+    hdn_dim, length, num_digits, batch_size, c, num_experts, model_type = request.param
     ds = SortDataset(split='train', length=length, num_digits=num_digits)
     dl = DataLoader(ds, batch_size=batch_size, shuffle=True, num_workers=0)
     blk_size = ds.get_block_size()
@@ -26,7 +26,7 @@ def training_setup(request):
 
     config = {
         'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
-        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, k, num_experts)
+        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, c, num_experts)
     }[model_type]()
     model = init_from_yml_string(config)
 
