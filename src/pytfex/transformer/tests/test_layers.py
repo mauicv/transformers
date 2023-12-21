@@ -47,7 +47,7 @@ def test_MoF_MLP():
     mod = MoF(
         hidden_dim=12,
         model=MLP(
-            hidden_dim=4,
+            hidden_dim=8,
             dropout=0.5
         ),
         num_groups=3,

@@ -1,9 +1,9 @@
-def get_moe_gpt_config(
+def get_mof_gpt_config(
         vcb_size,
         hdn_dim,
         blk_size,
-        num_experts,
-        c
+        c,
+        num_groups,
     ):
 
     return f"""
@@ -31,23 +31,29 @@ def get_moe_gpt_config(
                     params:
                         hidden_dim: {hdn_dim}
                         attn:
-                            type: 'Attention'
+                            type: 'MoF'
                             params:
                                 hidden_dim: {hdn_dim}
-                                num_heads: 4
-                                dropout: 0.5
+                                num_groups: {num_groups}
+                                k: {c}
+                                model:
+                                    type: 'Attention'
+                                    params:
+                                        hidden_dim: {c*int(hdn_dim/num_groups)}
+                                        num_heads: 4
+                                        dropout: 0.5
                         mlp:
-                            type: 'MoE'
+                            type: 'MoF'
                             params:
                                 hidden_dim: {hdn_dim}
-                                c: {c}
-                                experts:
-                                    -   num: {num_experts}
-                                        type: 'MLP'
-                                        params:
-                                            hidden_dim: {hdn_dim}
-                                            intermediate_dim: {hdn_dim}
-                                            dropout: 0.5
+                                num_groups: {num_groups}
+                                k: {c}
+                                model:
+                                    type: 'MLP'
+                                    params:
+                                        hidden_dim: {c*int(hdn_dim/num_groups)}
+                                        intermediate_dim: {4*c*int(hdn_dim/num_groups)}
+                                        dropout: 0.5
             head:
                 type: 'ClassificationHead'
                 params:

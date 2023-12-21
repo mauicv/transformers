@@ -3,8 +3,9 @@ from tests.dataset import SortDataset
 
 from pytfex.transformer.make_model import init_from_yml_string
 from pytfex.utils import set_seed
-from tests.basic_model import get_basic_gpt_config
-from tests.moe_model import get_moe_gpt_config
+from tests.models.basic_model import get_basic_gpt_config
+from tests.models.moe_model import get_moe_gpt_config
+from tests.models.mof_model import get_mof_gpt_config
 
 import torch
 
@@ -12,13 +13,17 @@ import pytest
 
 
 @pytest.fixture(params=[
-    (256, 6, 3, 32, None, None, 'gpt-basic'), # (hdn_dim, length, num_digits, batch_size, _, _, model_type)
-    (256, 6, 3, 32, 2, 4, 'gpt-moe') # (hdn_dim, length, num_digits, batch_size, k, num_experts, model_type)
+    # (model_type, hdn_dim, length, num_digits, batch_size, _, _, _)
+    ('gpt-basic', 256, 6, 3, 32, None, None, None),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
+    ('gpt-moe', 256, 6, 3, 32, 2, 4, None),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
+    ('gpt-mof', 256, 6, 3, 32, 2, None, 4)
 ])
 def training_setup(request):
     set_seed(0)
 
-    hdn_dim, length, num_digits, batch_size, c, num_experts, model_type = request.param
+    model_type, hdn_dim, length, num_digits, batch_size, c, num_experts, num_groups = request.param
     ds = SortDataset(split='train', length=length, num_digits=num_digits)
     dl = DataLoader(ds, batch_size=batch_size, shuffle=True, num_workers=0)
     blk_size = ds.get_block_size()
@@ -26,7 +31,8 @@ def training_setup(request):
 
     config = {
         'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
-        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, c, num_experts)
+        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, c, num_experts),
+        'gpt-mof': lambda: get_mof_gpt_config(vcb_size, hdn_dim, blk_size, c, num_groups)
     }[model_type]()
     model = init_from_yml_string(config)
 

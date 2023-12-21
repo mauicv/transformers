@@ -28,13 +28,28 @@ class MoF(torch.nn.Module):
         self.k = k
         self.hidden_dim_per_group = (hidden_dim // num_groups)
         self.model = model
-        self.gate = torch.nn.Linear(
+        self.source_gate = torch.nn.Linear(
+            hidden_dim,
+            self.g,
+            bias=False
+        )
+        self.dest_gate = torch.nn.Linear(
             hidden_dim,
             self.g,
             bias=False
         )
 
-    def forward(self, x: torch.Tensor, model_kwargs: Dict = None) -> torch.Tensor:
+    def _compute_source_scores(self, x: torch.Tensor) -> torch.Tensor:
+        S = torch.softmax(self.source_gate(x), dim=-1)
+        G, I = torch.topk(S, self.k, dim=-1)
+        return G.squeeze(-1), I.squeeze(-1)
+
+    def _compute_dest_scores(self, x: torch.Tensor) -> torch.Tensor:
+        S = torch.softmax(self.dest_gate(x), dim=-1)
+        G, I = torch.topk(S, self.k, dim=-1)
+        return G.squeeze(-1), I.squeeze(-1)
+
+    def forward(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         """Forward pass
 
         Args:
@@ -44,12 +59,9 @@ class MoF(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, seq_len, hidden_dim)
         """
-        if model_kwargs is None: model_kwargs = {}
         b, l, *_ = x.shape
-        S = torch.softmax(self.gate(x), dim=-1)
-        G, I = torch.topk(S, self.k, dim=-1)
-        G = G.squeeze(-1)
-        I = I.squeeze(-1)
+        G_source, I_source = self._compute_source_scores(x)
+        G_dest, I_dest = self._compute_dest_scores(x)
         x = x.reshape(b, l, self.g, -1)
         batch_indices = (torch
             .arange(b)
@@ -63,10 +75,11 @@ class MoF(torch.nn.Module):
             .unsqueeze(2)
             .expand(b, -1, self.k)
         )
-        _x = x[batch_indices, element_indices, I]
-        _x = G[:, :, :, None] * _x
+        z = torch.zeros_like(x)
+        _x = x[batch_indices, element_indices, I_source]
+        _x = G_source[:, :, :, None] * _x
         _x = _x.reshape(b, l, self.k*self.hidden_dim_per_group)
-        _x = self.model(_x, *model_kwargs)
+        _x = self.model(_x, **kwargs)
         _x = _x.reshape(b, l, self.k, self.hidden_dim_per_group)
-        x[batch_indices, element_indices, I] = _x
-        return x.reshape(b, l, -1)
+        z[batch_indices, element_indices, I_dest] = G_dest[:, :, :, None] * _x
+        return z.reshape(b, l, -1)
