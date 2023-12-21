@@ -66,7 +66,7 @@ def test_MoE_MoF_MLP():
             MoF(
                 hidden_dim=12,
                 model=MLP(
-                    hidden_dim=4,
+                    hidden_dim=8,
                     dropout=0.5
                 ),
                 num_groups=3,
@@ -76,4 +76,21 @@ def test_MoE_MoF_MLP():
     )
     t1 = torch.randn((2, 10, 12))
     t2 = mlp(t1)
+    assert t2.shape == (2, 10, 12)
+
+
+def test_MOF_attention():
+    mof_attn = MoF(
+        hidden_dim=12,
+        model=Attention(
+            hidden_dim=8,
+            num_heads=4,
+            dropout=0.5
+        ),
+        num_groups=3,
+        k=2
+    )
+
+    t1 = torch.randn((2, 10, 12))
+    t2 = mof_attn(t1)
     assert t2.shape == (2, 10, 12)
