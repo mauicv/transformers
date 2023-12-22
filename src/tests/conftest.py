@@ -8,7 +8,6 @@ from tests.models.moe_model import get_moe_gpt_config
 from tests.models.mof_model import get_mof_gpt_config
 
 import torch
-
 import pytest
 
 
@@ -18,7 +17,7 @@ import pytest
     # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
     ('gpt-moe', 256, 6, 3, 32, 2, 4, None),
     # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
-    ('gpt-mof', 256, 6, 3, 32, 2, None, 4)
+    ('gpt-mof', 2*256, 6, 3, 32, 2, None, 4)
 ])
 def training_setup(request):
     set_seed(0)
