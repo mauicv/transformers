@@ -59,7 +59,7 @@ class MoE(torch.nn.Module):
             ex = x[batch_indices, indices]
             ex_pred = scores[:, :, None] * expert(ex)
             new_x[batch_indices, indices] += ex_pred
-        return x
+        return new_x
 
     def _compute_k(self, l: int) -> int:
         k = int((l * self.c) / self.num_experts)
