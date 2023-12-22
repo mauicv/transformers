@@ -41,7 +41,7 @@ class MoE(torch.nn.Module):
         """
         b, l, *_ = x.shape
         k = self._compute_k(l)
-        S = torch.softmax(self.gate(x), dim=-1)
+        S = torch.sigmoid(self.gate(x))
         S = S.transpose(1, 2) # (batch_size, num_experts, tokens)
         G, I = torch.topk(S, k, dim=-1)
         # I - (batch_size, num_experts, top_k_tokens) - indices

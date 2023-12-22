@@ -40,12 +40,12 @@ class MoF(torch.nn.Module):
         )
 
     def _compute_source_scores(self, x: torch.Tensor) -> torch.Tensor:
-        S = torch.softmax(self.source_gate(x), dim=-1)
+        S = torch.sigmoid(self.source_gate(x))
         G, I = torch.topk(S, self.k, dim=-1)
         return G.squeeze(-1), I.squeeze(-1)
 
     def _compute_dest_scores(self, x: torch.Tensor) -> torch.Tensor:
-        S = torch.softmax(self.dest_gate(x), dim=-1)
+        S = torch.sigmoid(self.dest_gate(x))
         G, I = torch.topk(S, self.k, dim=-1)
         return G.squeeze(-1), I.squeeze(-1)
 

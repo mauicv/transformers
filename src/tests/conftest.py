@@ -17,7 +17,9 @@ import pytest
     # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
     ('gpt-moe', 256, 6, 3, 32, 2, 4, None),
     # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
-    ('gpt-mof', 2*256, 6, 3, 32, 2, None, 4)
+    ('gpt-mof', 2*256, 6, 3, 32, 2, None, 4),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
+    ('gpt-mof', 8*256, 6, 3, 32, 2, None, 64),
 ])
 def training_setup(request):
     set_seed(0)
