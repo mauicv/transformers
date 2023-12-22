@@ -3,9 +3,9 @@ from tests.dataset import SortDataset
 
 from pytfex.transformer.make_model import init_from_yml_string
 from pytfex.utils import set_seed
-from tests.models.basic_model import get_basic_gpt_config
-from tests.models.moe_model import get_moe_gpt_config
-from tests.models.mof_model import get_mof_gpt_config
+from tests.models.basic import get_basic_gpt_config
+from tests.models.moe import get_moe_gpt_config
+from tests.models.mof import get_mof_gpt_config
 
 import torch
 import pytest

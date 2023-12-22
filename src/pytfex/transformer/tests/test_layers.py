@@ -1,7 +1,7 @@
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe import MoE
-from pytfex.transformer.mof import MoF
+from pytfex.transformer.mof import MoF, MoF2
 import torch
 
 
@@ -56,6 +56,21 @@ def test_MoF_MLP():
     t1 = torch.randn((2, 10, 12))
     t2 = mod(t1)
     assert t2.shape == (2, 10, 12)
+
+
+def test_MoF2_MLP():
+    mod = MoF2(
+        hidden_dim=12,
+        model=MLP(
+            hidden_dim=8,
+            dropout=0.5
+        ),
+        num_proj=3,
+        k=2
+    )
+    t1 = torch.randn((2, 10, 12))
+    t2 = mod(t1)
+    # assert t2.shape == (2, 10, 12)
 
 
 def test_MoE_MoF_MLP():
