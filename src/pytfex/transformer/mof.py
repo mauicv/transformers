@@ -1,3 +1,7 @@
+"""
+Some work here is derived from: https://github.com/huggingface/transformers/blob/c7f076a00ee54f777b3d3322c91bc11489a47950/src/transformers/models/mixtral/modeling_mixtral.py#L655
+"""
+
 from typing import Dict
 import torch
 
@@ -95,8 +99,6 @@ class MoF2(torch.nn.Module):
         ):
         """Mixture of Features-2 (MoF2) layer
 
-        Selects k subgroups groups of features from the input tensor and applies a model to them.
-
         mof-2-runtime: O(d * k + 2*(d*d)/k + 8*d/k*d/k)
         """
         super(MoF2, self).__init__()
@@ -112,10 +114,17 @@ class MoF2(torch.nn.Module):
             bias=False
         )
         self.hidden_dim_per_group = (hidden_dim // num_proj)
-        self.projs = torch.nn.ModuleList([
+        self.down_projs = torch.nn.ModuleList([
             torch.nn.Linear(
                 self.hidden_dim,
                 self.hidden_dim_per_group,
+                bias=False
+            ) for _ in range(self.num_proj)
+        ])
+        self.up_projs = torch.nn.ModuleList([
+            torch.nn.Linear(
+                self.hidden_dim_per_group,
+                self.hidden_dim,
                 bias=False
             ) for _ in range(self.num_proj)
         ])
@@ -134,35 +143,57 @@ class MoF2(torch.nn.Module):
 
         Args:
             x (torch.Tensor): Input tensor of shape (batch_size, seq_len, hidden_dim)
-            model_kwargs (Dict): Keyword arguments for the model
+            kwargs (Dict): Keyword arguments for the model
 
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, seq_len, hidden_dim)
         """
         b, l, *_ = x.shape
+        x = x.view(-1, self.hidden_dim)
+
         G, I = self._compute_scores(x)
-        print(x.shape, I.shape, I)
-        for ind, proj in enumerate(self.projs):
-            pass
+        down_x = torch.zeros(
+            (b * l, self.hidden_dim_per_group),
+            device=x.device
+        )
 
+        up_x = torch.zeros(
+            (b * l, self.hidden_dim),
+            device=x.device
+        )
 
-        # batch_indices = (torch
-        #     .arange(b)
-        #     .unsqueeze(1)
-        #     .unsqueeze(2)
-        #     .expand(-1, l, self.k)
-        # )
-        # element_indices = (torch
-        #     .arange(l)
-        #     .unsqueeze(0)
-        #     .unsqueeze(2)
-        #     .expand(b, -1, self.k)
-        # )
-        # z = torch.zeros_like(x)
-        # _x = x[batch_indices, element_indices, I_source]
-        # _x = G_source[:, :, :, None] * _x
-        # _x = _x.reshape(b, l, self.k*self.hidden_dim_per_group)
-        # _x = self.model(_x, **kwargs)
-        # _x = _x.reshape(b, l, self.k, self.hidden_dim_per_group)
-        # z[batch_indices, element_indices, I_dest] = G_dest[:, :, :, None] * _x
-        # return z.reshape(b, l, -1)
+        proj_mask = torch.nn.functional.one_hot(
+            I, num_classes=self.num_proj
+        ).permute(2, 1, 0)
+
+        for ind, proj in enumerate(self.down_projs):
+            idx, top_x = torch.where(proj_mask[ind])
+            if top_x.shape[0] == 0:
+                continue
+            
+            top_x_list = top_x.tolist()
+            idx_list = idx.tolist()
+
+            current_state = x[None, top_x_list].reshape(-1, self.hidden_dim)
+            current_hidden_states = proj(current_state) * G[top_x_list, idx_list, None]
+
+            down_x.index_add_(0, top_x, current_hidden_states.to(x.dtype))
+
+        down_x = down_x.reshape(b, l, self.hidden_dim_per_group)
+        down_x = self.model(down_x, **kwargs)
+        down_x = down_x.view(-1, self.hidden_dim_per_group)
+
+        for ind, proj in enumerate(self.up_projs):
+            idx, top_x = torch.where(proj_mask[ind])
+            if top_x.shape[0] == 0:
+                continue
+            
+            top_x_list = top_x.tolist()
+            idx_list = idx.tolist()
+
+            current_state = down_x[None, top_x_list].reshape(-1, self.hidden_dim_per_group)
+            current_hidden_states = proj(current_state) * G[top_x_list, idx_list, None]
+
+            up_x.index_add_(0, top_x, current_hidden_states.to(x.dtype))
+        up_x = up_x.reshape(b, l, self.hidden_dim)
+        return up_x

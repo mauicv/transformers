@@ -6,6 +6,7 @@ from pytfex.utils import set_seed
 from tests.models.basic import get_basic_gpt_config
 from tests.models.moe import get_moe_gpt_config
 from tests.models.mof import get_mof_gpt_config
+from tests.models.mof2 import get_mof2_gpt_config
 
 import torch
 import pytest
@@ -19,7 +20,7 @@ import pytest
     # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
     ('gpt-mof', 2*256, 6, 3, 32, 2, None, 4),
     # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
-    ('gpt-mof', 8*256, 6, 3, 32, 2, None, 64),
+    ('gpt-mof2', 256, 6, 3, 32, 2, None, 2),
 ])
 def training_setup(request):
     set_seed(0)
@@ -33,7 +34,8 @@ def training_setup(request):
     config = {
         'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
         'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, c, num_experts),
-        'gpt-mof': lambda: get_mof_gpt_config(vcb_size, hdn_dim, blk_size, c, num_groups)
+        'gpt-mof': lambda: get_mof_gpt_config(vcb_size, hdn_dim, blk_size, c, num_groups),
+        'gpt-mof2': lambda: get_mof2_gpt_config(vcb_size, hdn_dim, blk_size, c, num_groups)
     }[model_type]()
     model = init_from_yml_string(config)
 
