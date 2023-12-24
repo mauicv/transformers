@@ -1,7 +1,8 @@
 def get_basic_gpt_config(
         vcb_size,
         hdn_dim,
-        blk_size
+        blk_size,
+        num_layers=2
     ):
 
     return f"""
@@ -29,7 +30,7 @@ def get_basic_gpt_config(
                     hidden_dim: {hdn_dim}
                     vocab_size: {vcb_size}
             layers:
-                -   num: 2
+                -   num: {num_layers}
                     type: 'TransformerLayer'
                     params:
                         hidden_dim: {hdn_dim}

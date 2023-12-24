@@ -4,6 +4,7 @@ def get_mof_gpt_config(
         blk_size,
         c,
         num_groups,
+        num_layers=2,
     ):
 
     return f"""
@@ -26,7 +27,7 @@ def get_mof_gpt_config(
                                 num_positions: {blk_size}
                                 hidden_dim: {hdn_dim}
             layers:
-                -   num: 2
+                -   num: {num_layers}
                     type: 'TransformerLayer'
                     params:
                         hidden_dim: {hdn_dim}

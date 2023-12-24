@@ -4,6 +4,7 @@ def get_mof2_gpt_config(
         blk_size,
         c,
         num_groups,
+        num_layers=2,
     ):
 
     return f"""
@@ -26,7 +27,7 @@ def get_mof2_gpt_config(
                                 num_positions: {blk_size}
                                 hidden_dim: {hdn_dim}
             layers:
-                -   num: 2
+                -   num: {num_layers}
                     type: 'TransformerLayer'
                     params:
                         hidden_dim: {hdn_dim}
@@ -40,7 +41,7 @@ def get_mof2_gpt_config(
                                     type: 'Attention'
                                     params:
                                         hidden_dim: {int(hdn_dim/num_groups)}
-                                        num_heads: 4
+                                        num_heads: 8
                                         dropout: 0.5
                         mlp:
                             type: 'MoF2'
