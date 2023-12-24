@@ -14,7 +14,6 @@ class GPT(torch.nn.Module, BaseTransformer):
             head: torch.nn.Module=None,
         ):
         super(GPT, self).__init__()
-        assert hidden_dim % num_heads == 0, "num_heads must divide hidden_dim"
         self.hidden_dim = hidden_dim
         self.num_heads = num_heads
         self.dropout = dropout

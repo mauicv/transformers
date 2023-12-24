@@ -102,8 +102,8 @@ class MoF2(torch.nn.Module):
         mof-2-runtime: O(d * k + 2*(d*d)/k + 8*d/k*d/k)
         """
         super(MoF2, self).__init__()
-        assert hidden_dim % num_proj == 0, "num_groups must divide hidden_dim"
-        assert k <= num_proj, "k must be less than or equal to num_groups"
+        assert hidden_dim % num_proj == 0, "num_proj must divide hidden_dim"
+        assert k <= num_proj, "k must be less than or equal to num_proj"
         self.hidden_dim = hidden_dim
         self.num_proj = num_proj
         self.k = k
@@ -162,9 +162,10 @@ class MoF2(torch.nn.Module):
             device=x.device
         )
 
-        proj_mask = torch.nn.functional.one_hot(
-            I, num_classes=self.num_proj
-        ).permute(2, 1, 0)
+        proj_mask = (torch.nn.functional
+            .one_hot(I, num_classes=self.num_proj)
+            .permute(2, 1, 0)
+        )
 
         for ind, proj in enumerate(self.down_projs):
             idx, top_x = torch.where(proj_mask[ind])
