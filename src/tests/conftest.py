@@ -6,7 +6,6 @@ from pytfex.utils import set_seed
 from tests.models.basic import get_basic_gpt_config
 from tests.models.moe import get_moe_gpt_config
 from tests.models.mof import get_mof_gpt_config
-from tests.models.mof2 import get_mof2_gpt_config
 
 import torch
 import pytest
@@ -18,9 +17,7 @@ import pytest
     # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
     ('gpt-moe', 256, 6, 3, 32, 2, 4, None),
     # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
-    ('gpt-mof', 2*256, 6, 3, 32, 2, None, 4),
-    # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
-    ('gpt-mof2', 256, 6, 3, 32, 2, None, 2),
+    ('gpt-mof', 256, 6, 3, 32, 2, None, 2),
 ])
 def training_setup(request):
     set_seed(0)

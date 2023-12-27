@@ -2,7 +2,6 @@ from pytfex.utils import set_seed
 from tests.models.basic import get_basic_gpt_config
 from tests.models.moe import get_moe_gpt_config
 from tests.models.mof import get_mof_gpt_config
-from tests.models.mof2 import get_mof2_gpt_config
 from pytfex.transformer.make_model import init_from_yml_string
 
 import pytest
@@ -10,11 +9,10 @@ import torch.nn as nn
 import torch
 import time
 
-
 @pytest.mark.parametrize('model_type,vcb_size,hdn_dim,blk_size,k,num_experts,num_groups', [
-    ('gpt-basic', 65, 256, 256, None, None, None),
-    ('gpt-moe', 65, 256, 256, 2, 4, None),
-    ('gpt-mof2', 65, 256, 256, 2, 2, 4),
+    # ('gpt-basic', 65, 256, 256, None, None, None),
+    # ('gpt-moe', 65, 256, 256, 2, 4, None),
+    ('gpt-mof', 65, 256, 256, 2, 2, 4),
 ])
 @pytest.mark.parametrize('with_train', [False])
 @pytest.mark.parametrize('iterations', [250])
@@ -40,8 +38,7 @@ def test_train(
     config = {
         'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size, num_layers),
         'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, k, num_experts, num_layers),
-        'gpt-mof': lambda: get_mof_gpt_config(vcb_size, hdn_dim, blk_size, k, num_groups, num_layers),
-        'gpt-mof2': lambda: get_mof2_gpt_config(vcb_size, hdn_dim, blk_size, k, num_groups, num_layers)
+        'gpt-mof': lambda: get_mof_gpt_config(vcb_size, hdn_dim, blk_size, k, num_groups, num_layers)
     }[model_type]()
     model = init_from_yml_string(config)
     loss_function = nn.CrossEntropyLoss()
@@ -69,3 +66,4 @@ def test_train(
     print(f'model_type: {model_type} - with_train: {with_train}')
     print(f'avg: {sum(times)/len(times)}')
     print(f'num_param: {sum(p.numel() for p in model.parameters())}')
+
