@@ -51,7 +51,7 @@ class MoF(torch.nn.Module):
     def _compute_scores(self, x: torch.Tensor) -> torch.Tensor:
         S = torch.sigmoid(self.gate(x))
         G, I = torch.topk(S, self.k, dim=-1)
-        return G.squeeze(-1), I.squeeze(-1)
+        return G, I
 
     def _project(self, x: torch.Tensor, I: torch.Tensor) -> torch.Tensor:
         pass

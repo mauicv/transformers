@@ -5,9 +5,9 @@ from profiling import Profiling
 
 
 benchmarks = [
-    GPTMoFConfig(num_layers=1, num_proj=2, k=2),
+    GPTBasicConfig(num_layers=1, hdn_dim=2048),
+    GPTMoFConfig(num_layers=1, num_proj=8, k=2, hdn_dim=2048),
     # GPTMoEConfig(num_layers=1, num_experts=3, c=1),
-    GPTBasicConfig(num_layers=1)
 ]
 
 for config in benchmarks:
@@ -19,11 +19,11 @@ for config in benchmarks:
 
     model.eval()
     output_1 = model(t1)
-    with Profiling(model.layers[0].mlp) as p:
-        output_2 = model(t1)
-
-    # with Profiling(model) as p:
+    # with Profiling(model.layers[0].mlp) as p:
     #     output_2 = model(t1)
+
+    with Profiling(model) as p:
+        output_2 = model(t1)
 
     assert torch.allclose(output_1, output_2), 'different outputs'
 
