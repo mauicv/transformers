@@ -1,5 +1,5 @@
 from pytfex.utils import set_seed
-from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig, GPTMoEMoFConfig
+from pytfex.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig, GPTMoEMoFConfig
 import torch
 from pytfex.utils import count_parameters
 from profiling import Profiling

@@ -1,12 +1,14 @@
 from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
-
-from pytfex.transformer.make_model import init_from_yml_string
 from pytfex.utils import set_seed
-# from tests.models.basic import get_basic_gpt_config
-# from tests.models.moe import get_moe_gpt_config
-# from tests.models.mof import get_mof_gpt_config
-from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig, GPTMoEMoFConfig
+
+from pytfex.models import (
+    get_model,
+    GPTMoFConfig,
+    GPTMoEConfig,
+    GPTBasicConfig,
+    GPTMoEMoFConfig
+)
 
 import torch
 import pytest
@@ -41,6 +43,7 @@ import pytest
         num_proj=4,
         batch_size=32,
     ), 6),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, num_groups)
     (GPTMoEMoFConfig(
         model_type='gpt-moemof',
         vcb_size=3,
