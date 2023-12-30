@@ -1,19 +1,22 @@
 from pytfex.utils import set_seed
-from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig
+from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig, GPTMoEMoFConfig
 import torch
+from pytfex.utils import count_parameters
 from profiling import Profiling
 
 
 benchmarks = [
-    GPTBasicConfig(num_layers=1, hdn_dim=2048),
-    GPTMoFConfig(num_layers=1, num_proj=8, k=2, hdn_dim=2048),
-    # GPTMoEConfig(num_layers=1, num_experts=3, c=1),
+    GPTBasicConfig(num_layers=1, hdn_dim=1024),
+    GPTMoEConfig(num_layers=1, num_experts=21, c=1, hdn_dim=512, ),
+    GPTMoFConfig(num_layers=1, num_proj=4, k=1, hdn_dim=2048),
+    GPTMoEMoFConfig(num_layers=1, num_experts=21, c=1, num_proj=4, k=1, hdn_dim=2048),
 ]
 
 for config in benchmarks:
     print(config)
     set_seed(0)
     model = get_model(config)
+    print(f'Number of parameters: {count_parameters(model)}')
 
     t1 = torch.randint(0, config.vcb_size, (config.batch_size, config.blk_size))
 

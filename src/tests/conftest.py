@@ -6,7 +6,7 @@ from pytfex.utils import set_seed
 # from tests.models.basic import get_basic_gpt_config
 # from tests.models.moe import get_moe_gpt_config
 # from tests.models.mof import get_mof_gpt_config
-from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig
+from tests.models import get_model, GPTMoFConfig, GPTMoEConfig, GPTBasicConfig, GPTMoEMoFConfig
 
 import torch
 import pytest
@@ -40,7 +40,18 @@ import pytest
         k=2,
         num_proj=4,
         batch_size=32,
-    ), 6)
+    ), 6),
+    (GPTMoEMoFConfig(
+        model_type='gpt-moemof',
+        vcb_size=3,
+        hdn_dim=4*256,
+        blk_size=12,
+        c=2,
+        num_experts=4,
+        k=2,
+        num_proj=4,
+        batch_size=32,
+    ), 6),
 ])
 def training_setup(request):
     set_seed(0)
