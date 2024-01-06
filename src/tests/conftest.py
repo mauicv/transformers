@@ -1,38 +1,48 @@
 from torch.utils.data.dataloader import DataLoader
 from tests.dataset import SortDataset
-
-from pytfex.transformer.make_model import init_from_yml_string
 from pytfex.utils import set_seed
-from tests.basic_model import get_basic_gpt_config
-from tests.moe_model import get_moe_gpt_config
+
+from pytfex.models import (
+    get_model,
+    GPTMoEConfig,
+    GPTBasicConfig,
+)
 
 import torch
-
 import pytest
 
 
 @pytest.fixture(params=[
-    (256, 6, 3, 32, None, None, 'gpt-basic'), # (hdn_dim, length, num_digits, batch_size, _, _, model_type)
-    (256, 6, 3, 32, 2, 4, 'gpt-moe') # (hdn_dim, length, num_digits, batch_size, k, num_experts, model_type)
+    # (model_type, hdn_dim, length, num_digits, batch_size, _, _, _)
+    (GPTBasicConfig(
+        model_type='gpt-basic',
+        vcb_size=3,
+        hdn_dim=256,
+        blk_size=12,
+        batch_size=32,
+    ), 6),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
+    (GPTMoEConfig(
+        model_type='gpt-moe',
+        vcb_size=3,
+        hdn_dim=256,
+        blk_size=12,
+        c=2,
+        num_experts=4,
+        batch_size=32,
+    ), 6)
 ])
 def training_setup(request):
     set_seed(0)
-
-    hdn_dim, length, num_digits, batch_size, c, num_experts, model_type = request.param
+    config, length = request.param
+    num_digits = config.vcb_size
     ds = SortDataset(split='train', length=length, num_digits=num_digits)
-    dl = DataLoader(ds, batch_size=batch_size, shuffle=True, num_workers=0)
-    blk_size = ds.get_block_size()
-    vcb_size = ds.get_vocab_size()
-
-    config = {
-        'gpt-basic': lambda: get_basic_gpt_config(vcb_size, hdn_dim, blk_size),
-        'gpt-moe': lambda: get_moe_gpt_config(vcb_size, hdn_dim, blk_size, c, num_experts)
-    }[model_type]()
-    model = init_from_yml_string(config)
+    dl = DataLoader(ds, batch_size=config.batch_size, shuffle=True, num_workers=0)
+    model = get_model(config)
 
     def val_fn(model):
         ds = SortDataset(split='test', length=length, num_digits=num_digits)
-        dl = DataLoader(ds, batch_size=batch_size, shuffle=False, num_workers=0)
+        dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=0)
         total = 0
         sum_acc = 0
         for x, y_true in dl:
@@ -47,4 +57,4 @@ def training_setup(request):
         acc = sum_acc / total
         return acc
 
-    return dl, model, val_fn, model_type
+    return dl, model, val_fn, config.model_type
