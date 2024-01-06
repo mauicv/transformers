@@ -4,10 +4,10 @@ from pytfex.utils import set_seed
 
 from pytfex.models import (
     get_model,
-    GPTMoFConfig,
-    GPTMoEConfig,
     GPTBasicConfig,
-    GPTMoEMoFConfig
+    GPTMoEMoFConfig,
+    GPTMoEConfig,
+    GPTMoFConfig
 )
 
 import torch
