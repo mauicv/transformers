@@ -8,6 +8,7 @@ class Attention(torch.nn.Module):
             dropout: float=0.5,
         ) -> None:
         super(Attention, self).__init__()
+        assert hidden_dim % num_heads == 0, f"num_heads must divide hidden_dim, {hidden_dim=}, {num_heads=}"
         self.hidden_dim = hidden_dim
         self.num_heads = num_heads
         self.dropout = torch.tensor(
