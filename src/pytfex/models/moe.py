@@ -39,7 +39,7 @@ def get_moe_gpt_config(config):
                                         type: 'MLP'
                                         params:
                                             hidden_dim: {config.hdn_dim}
-                                            intermediate_dim: {4*config.hdn_dim}
+                                            intermediate_dim: {config.mlp_hdn_dim}
                                             dropout: 0.5
             head:
                 type: 'ClassificationHead'
