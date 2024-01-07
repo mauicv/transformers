@@ -3,10 +3,10 @@ def get_basic_gpt_config(config):
     return f"""
         type: 'GPT'
         params:
-            dropout: 0.5
+            dropout: {config.dropout}
             hidden_dim: {config.hdn_dim}
             num_heads: 4
-            dropout: 0.5
+            dropout: {config.dropout}
             embedder:
                 type: 'MultiEmbedder'
                 params:
@@ -34,10 +34,10 @@ def get_basic_gpt_config(config):
                             params:
                                 hidden_dim: {config.hdn_dim}
                                 num_heads: 4
-                                dropout: 0.5
+                                dropout: {config.dropout}
                         mlp:
                             type: 'MLP'
                             params:
                                 hidden_dim: {config.hdn_dim}
-                                dropout: 0.5
+                                dropout: {config.dropout}
         """

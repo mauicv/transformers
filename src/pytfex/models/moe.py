@@ -2,10 +2,10 @@ def get_moe_gpt_config(config):
     return f"""
         type: 'GPT'
         params:
-            dropout: 0.5
+            dropout: {config.dropout}
             hidden_dim: {config.hdn_dim}
             num_heads: 4
-            dropout: 0.5
+            dropout: {config.dropout}
             embedder:
                 type: 'MultiEmbedder'
                 params:
@@ -28,7 +28,7 @@ def get_moe_gpt_config(config):
                             params:
                                 hidden_dim: {config.hdn_dim}
                                 num_heads: 4
-                                dropout: 0.5
+                                dropout: {config.dropout}
                         mlp:
                             type: 'MoE'
                             params:
@@ -40,7 +40,7 @@ def get_moe_gpt_config(config):
                                         params:
                                             hidden_dim: {config.hdn_dim}
                                             intermediate_dim: {config.mlp_hdn_dim}
-                                            dropout: 0.5
+                                            dropout: {config.dropout}
             head:
                 type: 'ClassificationHead'
                 params:
