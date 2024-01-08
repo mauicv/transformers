@@ -4,8 +4,10 @@ from pytfex.utils import set_seed
 
 from pytfex.models import (
     get_model,
-    GPTMoEConfig,
     GPTBasicConfig,
+    GPTMoEMoFConfig,
+    GPTMoEConfig,
+    GPTMoFConfig
 )
 
 import torch
@@ -30,7 +32,29 @@ import pytest
         c=2,
         num_experts=4,
         batch_size=32,
-    ), 6)
+    ), 6),
+    # (model_type, hdn_dim, length, num_digits, batch_size, k, _, num_groups)
+    (GPTMoFConfig(
+        model_type='gpt-mof',
+        vcb_size=3,
+        hdn_dim=4*256,
+        blk_size=12,
+        k=1,
+        num_groups=4,
+        batch_size=32,
+    ), 6),
+    # # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, num_groups)
+    # (GPTMoEMoFConfig(
+    #     model_type='gpt-moemof',
+    #     vcb_size=3,
+    #     hdn_dim=4*256,
+    #     blk_size=12,
+    #     c=2,
+    #     num_experts=4,
+    #     k=2,
+    #     num_proj=4,
+    #     batch_size=32,
+    # ), 6),
 ])
 def training_setup(request):
     set_seed(0)
