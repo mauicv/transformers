@@ -12,9 +12,11 @@ class GPTMoFConfig:
     hdn_dim: int = 256
     blk_size: int = 256
     k: int = 2
-    num_proj: int = 4
+    num_groups: int = 4
     batch_size: int = 32
     num_layers: int = 2
+    mlp_hdn_dim: int = 1024
+    dropout: float = 0.1
 
 
 @dataclass

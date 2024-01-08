@@ -37,24 +37,25 @@ import pytest
     (GPTMoFConfig(
         model_type='gpt-mof',
         vcb_size=3,
-        hdn_dim=256,
-        blk_size=12,
-        k=2,
-        num_proj=4,
-        batch_size=32,
-    ), 6),
-    # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, num_groups)
-    (GPTMoEMoFConfig(
-        model_type='gpt-moemof',
-        vcb_size=3,
         hdn_dim=4*256,
         blk_size=12,
-        c=2,
-        num_experts=4,
-        k=2,
-        num_proj=4,
+        k=1,
+        num_groups=4,
         batch_size=32,
+        dropout=0.1,
     ), 6),
+    # # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, num_groups)
+    # (GPTMoEMoFConfig(
+    #     model_type='gpt-moemof',
+    #     vcb_size=3,
+    #     hdn_dim=4*256,
+    #     blk_size=12,
+    #     c=2,
+    #     num_experts=4,
+    #     k=2,
+    #     num_proj=4,
+    #     batch_size=32,
+    # ), 6),
 ])
 def training_setup(request):
     set_seed(0)

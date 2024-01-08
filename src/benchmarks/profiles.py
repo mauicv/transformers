@@ -8,8 +8,8 @@ from profiling import Profiling
 benchmarks = [
     GPTBasicConfig(num_layers=1, hdn_dim=1024),
     GPTMoEConfig(num_layers=1, num_experts=21, c=1, hdn_dim=512, ),
-    GPTMoFConfig(num_layers=1, num_proj=4, k=1, hdn_dim=2048),
-    GPTMoEMoFConfig(num_layers=1, num_experts=21, c=1, num_proj=4, k=1, hdn_dim=2048),
+    GPTMoFConfig(num_layers=1, num_groups=4, k=1, hdn_dim=2048),
+    # GPTMoEMoFConfig(num_layers=1, num_experts=21, c=1, num_proj=4, k=1, hdn_dim=2048),
 ]
 
 for config in benchmarks:

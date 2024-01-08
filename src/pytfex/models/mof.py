@@ -2,10 +2,10 @@ def get_mof_gpt_config(config):
     return f"""
         type: 'GPT'
         params:
-            dropout: 0.5
+            dropout: {config.dropout}
             hidden_dim: {config.hdn_dim}
             num_heads: 4
-            dropout: 0.5
+            dropout: {config.dropout}
             embedder:
                 type: 'MultiEmbedder'
                 params:
@@ -27,26 +27,26 @@ def get_mof_gpt_config(config):
                             type: 'MoF'
                             params:
                                 hidden_dim: {config.hdn_dim}
-                                num_proj: {config.num_proj}
+                                num_groups: {config.num_groups}
                                 k: {config.k}
                                 model:
                                     type: 'Attention'
                                     params:
-                                        hidden_dim: {int(config.hdn_dim/config.num_proj)}
+                                        hidden_dim: {int(config.hdn_dim/config.num_groups)}
                                         num_heads: 8
-                                        dropout: 0.5
+                                        dropout: {config.dropout}
                         mlp:
                             type: 'MoF'
                             params:
                                 hidden_dim: {config.hdn_dim}
-                                num_proj: {config.num_proj}
+                                num_groups: {config.num_groups}
                                 k: {config.k}
                                 model:
                                     type: 'MLP'
                                     params:
-                                        hidden_dim: {int(config.hdn_dim/config.num_proj)}
-                                        intermediate_dim: {4*int(config.hdn_dim/config.num_proj)}
-                                        dropout: 0.5
+                                        hidden_dim: {int(config.hdn_dim/config.num_groups)}
+                                        intermediate_dim: {config.mlp_hdn_dim}
+                                        dropout: {config.dropout}
             head:
                 type: 'ClassificationHead'
                 params:
