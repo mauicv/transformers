@@ -42,7 +42,6 @@ import pytest
         k=1,
         num_groups=4,
         batch_size=32,
-        dropout=0.1,
     ), 6),
     # # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, num_groups)
     # (GPTMoEMoFConfig(
