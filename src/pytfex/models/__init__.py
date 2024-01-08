@@ -16,6 +16,7 @@ class GPTMoEConfig:
     num_layers: int = 2
     mlp_hdn_dim: int = 1024
     dropout: float = 0.1
+    num_heads: int = 4
 
 
 @dataclass
@@ -27,6 +28,7 @@ class GPTBasicConfig:
     batch_size: int = 32
     num_layers: int = 2
     dropout: float = 0.1
+    num_heads: int = 4
 
 
 def get_model(config):
