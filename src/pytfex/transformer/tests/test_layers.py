@@ -1,6 +1,7 @@
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe import MoE
+from pytfex.transformer.sparse_mlp import SparseMLP
 import torch
 
 
@@ -36,6 +37,17 @@ def test_MoE_MLP():
                 dropout=0.5
             ) for _ in range(4)
         ]
+    )
+    t1 = torch.randn((2, 10, 12))
+    t2 = mlp(t1)
+    assert t2.shape == (2, 10, 12)
+
+
+def test_SparseMLP():
+    mlp = SparseMLP(
+        hidden_dim=12,
+        k=2,
+        dropout=0.5
     )
     t1 = torch.randn((2, 10, 12))
     t2 = mlp(t1)
