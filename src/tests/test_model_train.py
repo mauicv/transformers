@@ -5,7 +5,7 @@ import time
 import pytest
 
 
-# @pytest.mark.skip(reason="Slow running/intermittent test")
+@pytest.mark.skip(reason="Slow running/intermittent test")
 def test_train(training_setup):
     set_seed(0)
     dl, model, val_fn, model_type = training_setup

@@ -1,5 +1,6 @@
 from pytfex.models.moe import get_moe_gpt_config
 from pytfex.models.basic import get_basic_gpt_config
+from pytfex.models.sparse_mlp import get_sparse_mlp_gpt_config
 from pytfex.transformer.make_model import init_from_yml_string
 from dataclasses import dataclass
 
@@ -48,6 +49,6 @@ def get_model(config):
     config_str = {
         'gpt-moe': get_moe_gpt_config,
         'gpt-basic': get_basic_gpt_config,
-        'sparse-mlp-gpt': get_basic_gpt_config,
+        'sparse-mlp-gpt': get_sparse_mlp_gpt_config,
     }[config.model_type](config)
     return init_from_yml_string(config_str)
