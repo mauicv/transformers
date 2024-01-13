@@ -4,8 +4,9 @@ from pytfex.utils import set_seed
 
 from pytfex.models import (
     get_model,
-    GPTMoEConfig,
     GPTBasicConfig,
+    GPTTokenChoiceMoEConfig,
+    GPTExpertChoiceMoEConfig,
 )
 
 import torch
@@ -13,21 +14,25 @@ import pytest
 
 
 @pytest.fixture(params=[
-    # (model_type, hdn_dim, length, num_digits, batch_size, _, _, _)
     (GPTBasicConfig(
-        model_type='gpt-basic',
         vcb_size=3,
         hdn_dim=256,
         blk_size=12,
         batch_size=32,
     ), 6),
-    # (model_type, hdn_dim, length, num_digits, batch_size, k, num_experts, _)
-    (GPTMoEConfig(
-        model_type='gpt-moe',
+    (GPTExpertChoiceMoEConfig(
         vcb_size=3,
         hdn_dim=256,
         blk_size=12,
         c=2,
+        num_experts=4,
+        batch_size=32,
+    ), 6),
+    (GPTTokenChoiceMoEConfig(
+        vcb_size=3,
+        hdn_dim=256,
+        blk_size=12,
+        k=2,
         num_experts=4,
         batch_size=32,
     ), 6)
