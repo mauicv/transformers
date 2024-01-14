@@ -2,7 +2,7 @@ from typing import List
 import torch
 
 
-class MoE(torch.nn.Module):
+class ExpertChoiceMoE(torch.nn.Module):
     def __init__(
             self,
             hidden_dim: int,
@@ -19,7 +19,7 @@ class MoE(torch.nn.Module):
                 many experts are utilized by a token. Defaults to 2.
             experts (List, optional): List of experts. Each expert is a torch.nn.Module.
         """
-        super(MoE, self).__init__()
+        super(ExpertChoiceMoE, self).__init__()
         self.hidden_dim = hidden_dim
         self.c = c
         self.experts = torch.nn.ModuleList(experts)

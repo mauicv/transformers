@@ -1,4 +1,4 @@
-def get_moe_gpt_config(config):
+def get_ec_moe_gpt_config(config):
     return f"""
         type: 'GPT'
         params:
@@ -30,7 +30,7 @@ def get_moe_gpt_config(config):
                                 num_heads: {config.num_heads}
                                 dropout: {config.dropout}
                         mlp:
-                            type: 'MoE'
+                            type: 'ExpertChoiceMoE'
                             params:
                                 hidden_dim: {config.hdn_dim}
                                 c: {config.c}

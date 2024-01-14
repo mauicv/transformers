@@ -5,7 +5,8 @@ import copy
 from pytfex.transformer.layer import TransformerLayer
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
-from pytfex.transformer.moe import MoE
+from pytfex.transformer.moe_ec import ExpertChoiceMoE
+from pytfex.transformer.moe_tc import TokenChoiceMoE
 from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
 from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
@@ -17,7 +18,8 @@ class TransformerObjectRegistry:
         'TransformerLayer': TransformerLayer,
         'Attention': Attention,
         'MLP': MLP,
-        'MoE': MoE,
+        'ExpertChoiceMoE': ExpertChoiceMoE,
+        'TokenChoiceMoE': TokenChoiceMoE,
         'GPT': GPT,
         'ClassificationHead': ClassificationHead,
         'InversePatch': InversePatch,

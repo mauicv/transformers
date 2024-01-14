@@ -1,6 +1,7 @@
 from pytfex.transformer.attention import Attention
 from pytfex.transformer.mlp import MLP
-from pytfex.transformer.moe import MoE
+from pytfex.transformer.moe_ec import ExpertChoiceMoE
+from pytfex.transformer.moe_tc import TokenChoiceMoE
 import torch
 
 
@@ -26,10 +27,26 @@ def test_MLP():
     assert t2.shape == (1, 10, 12)
 
 
-def test_MoE_MLP():
-    mlp = MoE(
+def test_expert_choice_MoE_MLP():
+    mlp = ExpertChoiceMoE(
         hidden_dim=12,
         c=2,
+        experts=[
+            MLP(
+                hidden_dim=12,
+                dropout=0.5
+            ) for _ in range(4)
+        ]
+    )
+    t1 = torch.randn((2, 10, 12))
+    t2 = mlp(t1)
+    assert t2.shape == (2, 10, 12)
+
+
+def test_token_choice_MoE_MLP():
+    mlp = TokenChoiceMoE(
+        hidden_dim=12,
+        k=2,
         experts=[
             MLP(
                 hidden_dim=12,

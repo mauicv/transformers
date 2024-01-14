@@ -1,5 +1,5 @@
 from pytfex.utils import set_seed
-from pytfex.models import get_model, GPTMoEConfig, GPTBasicConfig
+from pytfex.models import get_model, GPTExpertChoiceMoEConfig, GPTTokenChoiceMoEConfig, GPTBasicConfig
 import torch
 from pytfex.utils import count_parameters
 from profiling import Profiling
@@ -7,7 +7,8 @@ from profiling import Profiling
 
 benchmarks = [
     GPTBasicConfig(num_layers=1, hdn_dim=1024),
-    GPTMoEConfig(num_layers=1, num_experts=21, c=1, hdn_dim=512, ),
+    GPTExpertChoiceMoEConfig(num_layers=1, num_experts=21, c=1, hdn_dim=512, ),
+    GPTTokenChoiceMoEConfig(num_layers=1, num_experts=21, k=1, hdn_dim=512, ),
 ]
 
 for config in benchmarks:
