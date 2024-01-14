@@ -39,26 +39,22 @@ class ExpertChoiceMoE(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, seq_len, hidden_dim)
         """
-        b, l, *_ = x.shape
-        k = self._compute_k(l)
+        b, l, hdn_dim = x.shape
+        x = x.view(b * l, hdn_dim)
+        k = self._compute_k(l*b)
         S = torch.sigmoid(self.gate(x))
-        S = S.transpose(1, 2) # (batch_size, num_experts, tokens)
+        S = S.transpose(0, 1) # (num_experts, batch_size*tokens)
         G, I = torch.topk(S, k, dim=-1)
-        # I - (batch_size, num_experts, top_k_tokens) - indices
-        # G - (batch_size, num_experts, top_k_tokens) - weights
+        # I - (num_experts, top_k_tokens) - indices
+        # G - (num_experts, top_k_tokens) - weights
         new_x = torch.zeros_like(x)
         for i, expert in enumerate(self.experts):
-            indices = I[:, i]
-            scores = G[:, i]
-            batch_indices = (torch
-                .arange(b)
-                .view(-1, 1)
-                .expand_as(indices)
-            )
-            # (batch_size, top_k_tokens, hidden_dim) - tokens for expert i
-            ex = x[batch_indices, indices]
-            ex_pred = scores[:, :, None] * expert(ex)
-            new_x[batch_indices, indices] += ex_pred
+            indices = I[i]
+            scores = G[i]
+            ex = x[indices]
+            ex_pred = scores[:, None] * expert(ex)
+            new_x[indices] += ex_pred
+        new_x = new_x.view(b, l, hdn_dim)
         return new_x
 
     def _compute_k(self, l: int) -> int:
