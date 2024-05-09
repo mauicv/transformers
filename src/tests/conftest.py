@@ -5,6 +5,7 @@ from pytfex.utils import set_seed
 from pytfex.models import (
     get_model,
     GPTBasicConfig,
+    GPTRelAttnConfig,
     GPTTokenChoiceMoEConfig,
     GPTExpertChoiceMoEConfig,
 )
@@ -15,6 +16,12 @@ import pytest
 
 @pytest.fixture(params=[
     (GPTBasicConfig(
+        vcb_size=3,
+        hdn_dim=256,
+        blk_size=12,
+        batch_size=32,
+    ), 6),
+    (GPTRelAttnConfig(
         vcb_size=3,
         hdn_dim=256,
         blk_size=12,

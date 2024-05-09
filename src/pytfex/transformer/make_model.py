@@ -3,7 +3,7 @@ import os
 import copy
 
 from pytfex.transformer.layer import TransformerLayer
-from pytfex.transformer.attention import Attention
+from pytfex.transformer.attention import Attention, RelativeAttention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe_ec import ExpertChoiceMoE
 from pytfex.transformer.moe_tc import TokenChoiceMoE
@@ -28,9 +28,9 @@ class TransformerObjectRegistry:
         'MultiEmbedder': MultiEmbedder,
         'PatchEmbedder': PatchEmbedder,
         'LinearEmbedder': LinearEmbedder,
-
+        'RelativeAttention': RelativeAttention
     }
-    
+
     def register(name):
         def decorator(cls):
             TransformerObjectRegistry._registry[name] = cls
