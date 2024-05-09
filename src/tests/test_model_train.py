@@ -9,6 +9,7 @@ import pytest
 def test_train(training_setup):
     set_seed(0)
     dl, model, val_fn, model_type = training_setup
+    model.get_weight_decay_params() # Test that this runs without error
     opt = torch.optim.Adam(model.parameters(), lr=1e-4)
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     loss_fn = torch.nn.CrossEntropyLoss()
