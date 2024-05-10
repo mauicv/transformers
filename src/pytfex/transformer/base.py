@@ -45,6 +45,8 @@ class BaseTransformer():
                     decay_params[fpn] = param
                 elif 'weight' in pn and isinstance(module, blacklist_weight_modules):
                     no_decay_params[fpn] = param
+                elif 'Er' in pn:
+                    no_decay_params[fpn] = param
 
         all_params_set = set([n for n, _ in self.named_parameters()])
         decay_params_set = set(decay_params.keys())
