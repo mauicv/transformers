@@ -39,21 +39,13 @@ def test_gumbel_softmax_rel_attention():
     )
 
     t1 = torch.zeros((1, 10, 12))
-    t2 = attn(t1, hard=True, tau=1.0)
+    t2 = attn(t1)
     assert t2.shape == (1, 10, 12)
 
-
-def test_gumbel_softmax_rel_attention():
-    attn = GumbelSoftmaxRelativeAttention(
-        hidden_dim=12,
-        num_heads=4,
-        num_positions=10,
-        dropout=0.5
-    )
-
-    t1 = torch.zeros((1, 10, 12))
-    t2 = attn(t1, hard=False, tau=1.0)
-    assert t2.shape == (1, 10, 12)
+    attn.set_tau(0.5)
+    attn.set_hard(True)
+    t3 = attn(t1)
+    assert t3.shape == (1, 10, 12)
 
 
 def test_MLP():

@@ -170,12 +170,19 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
             self.head_dim
         ))
 
+        self.tau=1.0
+        self.hard=False
+
+    def set_tau(self, tau):
+        self.tau = tau
+    
+    def set_hard(self, hard):
+        self.hard = hard
+
     def forward(
             self,
             x,
             mask=None,
-            tau=1.0,
-            hard=False,
         ):
         if mask is not None:
             assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
@@ -200,7 +207,7 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))
 
-        a = gumbel_softmax(a, tau, hard=hard)
+        a = gumbel_softmax(a, self.tau, hard=self.hard)
         a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
