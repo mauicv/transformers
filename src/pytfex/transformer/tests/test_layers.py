@@ -1,4 +1,4 @@
-from pytfex.transformer.attention import Attention, RelativeAttention
+from pytfex.transformer.attention import Attention, RelativeAttention, GumbelSoftmaxRelativeAttention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe_ec import ExpertChoiceMoE
 from pytfex.transformer.moe_tc import TokenChoiceMoE
@@ -27,6 +27,32 @@ def test_rel_attention():
 
     t1 = torch.zeros((1, 10, 12))
     t2 = attn(t1)
+    assert t2.shape == (1, 10, 12)
+
+
+def test_gumbel_softmax_rel_attention():
+    attn = GumbelSoftmaxRelativeAttention(
+        hidden_dim=12,
+        num_heads=4,
+        num_positions=10,
+        dropout=0.5
+    )
+
+    t1 = torch.zeros((1, 10, 12))
+    t2 = attn(t1, hard=True, tau=1.0)
+    assert t2.shape == (1, 10, 12)
+
+
+def test_gumbel_softmax_rel_attention():
+    attn = GumbelSoftmaxRelativeAttention(
+        hidden_dim=12,
+        num_heads=4,
+        num_positions=10,
+        dropout=0.5
+    )
+
+    t1 = torch.zeros((1, 10, 12))
+    t2 = attn(t1, hard=False, tau=1.0)
     assert t2.shape == (1, 10, 12)
 
 

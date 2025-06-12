@@ -8,6 +8,7 @@ from pytfex.models import (
     GPTRelAttnConfig,
     GPTTokenChoiceMoEConfig,
     GPTExpertChoiceMoEConfig,
+    GPTGumbelSoftmaxRelativeAttentionConfig,
 )
 
 import torch
@@ -42,7 +43,13 @@ import pytest
         k=2,
         num_experts=4,
         batch_size=32,
-    ), 6)
+    ), 6),
+    (GPTGumbelSoftmaxRelativeAttentionConfig(
+        vcb_size=3,
+        hdn_dim=256,
+        blk_size=12,
+        batch_size=32,
+    ), 6),
 ])
 def training_setup(request):
     set_seed(0)

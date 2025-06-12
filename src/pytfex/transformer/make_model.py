@@ -3,7 +3,7 @@ import os
 import copy
 
 from pytfex.transformer.layer import TransformerLayer
-from pytfex.transformer.attention import Attention, RelativeAttention
+from pytfex.transformer.attention import Attention, RelativeAttention, GumbelSoftmaxRelativeAttention
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe_ec import ExpertChoiceMoE
 from pytfex.transformer.moe_tc import TokenChoiceMoE
@@ -28,7 +28,8 @@ class TransformerObjectRegistry:
         'MultiEmbedder': MultiEmbedder,
         'PatchEmbedder': PatchEmbedder,
         'LinearEmbedder': LinearEmbedder,
-        'RelativeAttention': RelativeAttention
+        'RelativeAttention': RelativeAttention,
+        'GumbelSoftmaxRelativeAttention': GumbelSoftmaxRelativeAttention
     }
 
     def register(name):
