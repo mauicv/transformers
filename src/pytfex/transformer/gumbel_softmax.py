@@ -8,7 +8,7 @@ def gumbel_softmax(logits, tau=1.0, eps=1e-20, hard=False):
         y_hard = torch.zeros_like(y_soft)
         y_hard.scatter_(
             dim=-1,
-            index=i[:, None],
+            index=i.unsqueeze(-1),
             src=torch.ones_like(y_soft),
         )
         y_masked = y_soft * y_hard

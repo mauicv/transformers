@@ -76,4 +76,4 @@ def training_setup(request):
         acc = sum_acc / total
         return acc
 
-    return dl, model, val_fn, config.model_type
+    return dl, model, val_fn, config
