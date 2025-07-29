@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.skip(reason="Slow running/intermittent test")
 def test_train(training_setup):
     set_seed(0)
-    dl, model, val_fn, model_type = training_setup
+    dl, model, val_fn, config = training_setup
     model.get_weight_decay_params() # Test that this runs without error
     opt = torch.optim.Adam(model.parameters(), lr=1e-4)
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -16,7 +16,7 @@ def test_train(training_setup):
     acc = val_fn(model)
 
     print('\n')
-    print(f'-- model-type : {model_type} --')
+    print(f'-- model-type : {config.model_type} --')
     print(f'-- # params   : {count_parameters(model)} --')
     print('epoch_|_loss_____|_acc______|_time____')
     print(f'    -1| None     | {acc:0.5}  | None')
