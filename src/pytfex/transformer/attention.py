@@ -2,6 +2,21 @@ import torch
 from pytfex.transformer.gumbel_softmax import gumbel_softmax
 
 
+def _verify_input(x, mask, use_kv_cache, kv_cache, hidden_dim, head_dim):
+    if use_kv_cache:
+        assert kv_cache is not None, "kv_cache must be provided if use_kv_cache is True"
+        if 'k' in kv_cache and 'v' in kv_cache:
+            past_k, past_v = kv_cache['k'], kv_cache['v']
+            assert past_k.shape[3] == head_dim, \
+                f"kv_cache has incorrect head_dim, expected {head_dim}, got {past_k.shape[3]}"
+            assert past_v.shape[3] == head_dim, \
+                f"kv_cache has incorrect head_dim, expected {head_dim}, got {past_v.shape[3]}"
+    if mask is not None:
+        assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
+    assert len(x.shape) == 3, "Input must have shape (batch, seq_len, hidden_dim)"
+    assert x.shape[-1] == hidden_dim, "Input has incorrect hidden_dim"
+
+
 class Attention(torch.nn.Module):
     def __init__(
             self,
@@ -34,18 +49,27 @@ class Attention(torch.nn.Module):
     def forward(
                 self,
                 x,
-                mask=None
+                mask=None,
+                use_kv_cache=False,
+                kv_cache=None,
             ):
-        if mask is not None:
-            assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
-        assert len(x.shape) == 3, "Input must have shape (batch, seq_len, hidden_dim)"
-        assert x.shape[-1] == self.hidden_dim, "Input has incorrect hidden_dim"
+        _verify_input(x, mask, use_kv_cache, kv_cache, self.hidden_dim, self.head_dim)
         b, l, d = x.shape
+
+        if use_kv_cache:
+            try:
+                past_k, past_v = kv_cache['k'], kv_cache['v']
+            except KeyError:
+                past_k = torch.zeros((b, self.num_heads, 0, self.head_dim))
+                past_v = torch.zeros((b, self.num_heads, 0, self.head_dim))
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
         q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        if use_kv_cache:
+            k = torch.cat((past_k, k), dim=2)
+            v = torch.cat((past_v, v), dim=2)
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
         if mask is not None:
@@ -54,7 +78,8 @@ class Attention(torch.nn.Module):
         a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
-        return self.resid_dropout(output)
+        output = self.resid_dropout(output)
+        return output, {'q': q, 'k': k, 'v': v}
 
 
 def generate_relative_positions(L):
@@ -102,18 +127,26 @@ class RelativeAttention(torch.nn.Module):
     def forward(
             self,
             x,
-            mask=None
+            mask=None,
+            use_kv_cache=False,
+            kv_cache=None,
         ):
-        if mask is not None:
-            assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
-        assert len(x.shape) == 3, "Input must have shape (batch, seq_len, hidden_dim)"
-        assert x.shape[-1] == self.hidden_dim, "Input has incorrect hidden_dim"
+        _verify_input(x, mask, use_kv_cache, kv_cache, self.hidden_dim, self.head_dim)
         b, l, d = x.shape
+        if use_kv_cache:
+            try:
+                past_k, past_v = kv_cache['k'], kv_cache['v']
+            except KeyError:
+                past_k = torch.zeros((b, self.num_heads, 0, self.head_dim))
+                past_v = torch.zeros((b, self.num_heads, 0, self.head_dim))
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
         q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        if use_kv_cache:
+            k = torch.cat((past_k, k), dim=2)
+            v = torch.cat((past_v, v), dim=2)
 
         rel_pos = generate_relative_positions(l)
         Er = self.Er[:, rel_pos].unsqueeze(0)
@@ -130,7 +163,8 @@ class RelativeAttention(torch.nn.Module):
         a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
-        return self.resid_dropout(output)
+        output = self.resid_dropout(output)
+        return output, {'q': q, 'k': k, 'v': v}
     
 
 class GumbelSoftmaxRelativeAttention(torch.nn.Module):
@@ -183,18 +217,25 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
             self,
             x,
             mask=None,
+            use_kv_cache=False,
+            kv_cache=None,
         ):
-        if mask is not None:
-            assert mask.dtype == torch.bool, "Mask must be of type torch.float32"
-        assert len(x.shape) == 3, "Input must have shape (batch, seq_len, hidden_dim)"
-        assert x.shape[-1] == self.hidden_dim, "Input has incorrect hidden_dim"
+        _verify_input(x, mask, use_kv_cache, kv_cache, self.hidden_dim, self.head_dim)
         b, l, d = x.shape
+        if use_kv_cache:
+            try:
+                past_k, past_v = kv_cache['k'], kv_cache['v']
+            except KeyError:
+                past_k = torch.zeros((b, self.num_heads, 0, self.head_dim))
+                past_v = torch.zeros((b, self.num_heads, 0, self.head_dim))
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
         q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
-
+        if use_kv_cache:
+            k = torch.cat((past_k, k), dim=2)
+            v = torch.cat((past_v, v), dim=2)
         rel_pos = generate_relative_positions(l)
         Er = self.Er[:, rel_pos].unsqueeze(0)
 
@@ -211,4 +252,5 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
-        return self.resid_dropout(output)
+        output = self.resid_dropout(output)
+        return output, {'q': q, 'k': k, 'v': v}

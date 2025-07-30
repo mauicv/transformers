@@ -23,12 +23,27 @@ class GPT(torch.nn.Module, BaseTransformer):
         self.layers = torch.nn.ModuleList(layers)
         self.head = head
 
-    def forward(self, x, mask=None):
+    def forward(self, x, mask=None, use_kv_cache=False, kv_cache=None):
+        if use_kv_cache and kv_cache is not None:
+            assert len(kv_cache) == len(self.layers), \
+                'kv_cache must be a list of dicts with the same length as layers'
+        if kv_cache is None:
+            kv_cache = [{} for _ in range(len(self.layers))]
+
         if self.embedder:
             x = self.embedder(x)
         x = self.drop(x)
-        for layer in self.layers:
-            x = layer(x, mask=mask)
+        new_kv_cache = []
+        for layer, kv_cache in zip(self.layers, kv_cache):
+            x, _kv_cache = layer(
+                x,
+                mask=mask,
+                use_kv_cache=use_kv_cache,
+                kv_cache=kv_cache
+            )
+            new_kv_cache.append(_kv_cache)
         if self.head is not None:
             x = self.head(x)
-        return x
+        if not use_kv_cache:
+            return x
+        return x, new_kv_cache

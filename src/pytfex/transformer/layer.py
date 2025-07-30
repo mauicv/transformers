@@ -19,7 +19,13 @@ class TransformerLayer(torch.nn.Module):
             self.hidden_dim
         )
 
-    def forward(self, x, mask=None):
-        x = x + self.attn(self.ln_1(x), mask=mask)
+    def forward(self, x, mask=None, use_kv_cache=False, kv_cache=None):
+        attn_out, kv_cache = self.attn(
+            self.ln_1(x),
+            mask=mask,
+            use_kv_cache=use_kv_cache,
+            kv_cache=kv_cache
+        )
+        x = x + attn_out
         x = x + self.mlp(self.ln_2(x))
-        return x
+        return x, kv_cache
