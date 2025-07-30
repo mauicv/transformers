@@ -60,10 +60,12 @@ def test_kv_cache_decode(training_setup):
     result = decode(model, config, input_ids, limit=8, sample=False)
 
     kv_cache=[{}, {}]
+    x = input_ids
     for _ in range(8):
-        preds, kv_cache = model(input_ids, use_kv_cache=True, kv_cache=kv_cache)
+        preds, kv_cache = model(x, use_kv_cache=True, kv_cache=kv_cache)
         y = (preds[:, [-1], :] / 1).softmax(dim=-1)
-        gen_id = torch.argmax(y, dim=-1)
-        input_ids = torch.cat((input_ids, gen_id), dim=-1)
-
+        x = torch.argmax(y, dim=-1)
+        input_ids = torch.cat((input_ids, x), dim=-1)
+    print(result)
+    print(input_ids)
     assert torch.allclose(result, input_ids)
