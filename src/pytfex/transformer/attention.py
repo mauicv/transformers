@@ -76,10 +76,10 @@ class Attention(torch.nn.Module):
             a = a.masked_fill(mask, float('-inf'))
         a = torch.softmax(a, dim=-1)
         a = self.attn_dropout(a)
-        output =  (a @ v).transpose(1, 2).reshape(b, l, d)
+        output = (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         output = self.resid_dropout(output)
-        return output, {'q': q, 'k': k, 'v': v}
+        return output, {'q': q, 'k': k, 'v': v, 'a': a}
 
 
 def generate_relative_positions(L):

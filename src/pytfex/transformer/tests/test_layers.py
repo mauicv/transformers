@@ -25,9 +25,9 @@ def test_attention_kv_cache():
         dropout=0.0
     )
 
-    t1 = torch.ones((2, 10, 12))
+    t1 = torch.randn((2, 10, 12))
     _t2, kv_cache = attn(t1)
-    t1 = torch.ones((2, 1, 12))
+    t1 = t1[:, [-1], :]
     kv = {'k': kv_cache['k'][:, :, :-1], 'v': kv_cache['v'][:, :, :-1]}
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
     assert t2.shape == (2, 1, 12)
@@ -174,8 +174,6 @@ def test_transformer_layer():
     t1 = torch.randn((1, 3, 12))
     t21, _ = layer(t1)
     t22, _ = layer(t1, use_kv_cache=True, kv_cache={})
-
-    print(t21, t22)
     for a, b in zip(
             t21[:, [-1]].flatten().tolist(),
             t22[:, [-1]].flatten().tolist()

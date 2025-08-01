@@ -8,8 +8,8 @@ class MultiEmbedder(torch.nn.Module):
         super(MultiEmbedder, self).__init__()
         self.embedders = torch.nn.ModuleList(embedders)
 
-    def forward(self, x):
-        return sum([embedder(x) for embedder in self.embedders])
+    def forward(self, x, **kwargs):
+        return sum([embedder(x, **kwargs) for embedder in self.embedders])
 
 
 class TokenEmbedder(torch.nn.Module):
@@ -25,7 +25,7 @@ class TokenEmbedder(torch.nn.Module):
             hidden_dim
         )
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
         x = self.tok_emb(x)
         return x
 
@@ -43,12 +43,20 @@ class PositionEmbedder(torch.nn.Module):
             hidden_dim
         )
 
-    def forward(self, x):
-        positions = (torch
-            .arange(0, x.shape[1])
-            .expand(x.shape[0], -1)
-            .to(x.device)
-        )
+    def forward(self, x, kv_cache=None, **kwargs):
+        if kv_cache is None:
+            positions = (torch
+                .arange(0, x.shape[1])
+                .expand(x.shape[0], -1)
+                .to(x.device)
+            )
+        else:
+            leading_position = min(x.shape[1] + kv_cache[-1]['k'].shape[2], self.pos_emb.num_embeddings) - x.shape[1] 
+            positions = (torch
+                .arange(leading_position, leading_position + x.shape[1])
+                .expand(x.shape[0], -1)
+                .to(x.device)
+            )
         x = self.pos_emb(positions)
         return x
 
@@ -67,7 +75,7 @@ class LinearEmbedder(torch.nn.Module):
             self.hidden_dim
         )
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
         return self.linear(x)
 
 
@@ -98,7 +106,7 @@ class PatchEmbedder(torch.nn.Module):
             hidden_dim
         )
 
-    def forward(self, X):
+    def forward(self, X, **kwargs):
         return self.linear(X)
 
     def get_patches(self, images):
