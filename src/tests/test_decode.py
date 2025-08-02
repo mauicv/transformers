@@ -4,6 +4,7 @@ from pytfex.models import (
     GPTBasicConfig,
 )
 from pytfex.transformer.mask import get_causal_mask
+import pytest
 
 
 def decode(model, config, input_ids, temp=1, limit=16, sample=True):
@@ -64,6 +65,8 @@ def test_kv_cache():
 def test_kv_cache_decode(training_setup):
     _, model, _, config = training_setup
     model.eval()
+    if config.model_type == 'gpt-ec-moe':
+        pytest.skip("kv cache not implemented for gpt-ec-moe")
     if config.model_type == 'gpt-gumbel-sm-rel-attn':
         for layer in model.layers:
             layer.attn.set_tau(0.0)

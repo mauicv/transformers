@@ -64,7 +64,11 @@ def test_rel_attention_kv_cache():
     t1 = torch.ones((2, 10, 12))
     _t2, kv_cache = attn(t1)
     t1 = torch.ones((2, 1, 12))
-    kv = {'k': kv_cache['k'][:, :, :-1], 'v': kv_cache['v'][:, :, :-1]}
+    kv = {
+        'k': kv_cache['k'][:, :, :-1],
+        'v': kv_cache['v'][:, :, :-1],
+        'q': kv_cache['q'][:, :, :-1]
+    }
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
@@ -104,7 +108,11 @@ def test_gumbel_softmax_rel_attention_kv_cache():
     t1 = torch.ones((2, 10, 12))
     _t2, kv_cache = attn(t1)
     t1 = torch.ones((2, 1, 12))
-    kv = {'k': kv_cache['k'][:, :, :-1], 'v': kv_cache['v'][:, :, :-1]}
+    kv = {
+        'k': kv_cache['k'][:, :, :-1],
+        'v': kv_cache['v'][:, :, :-1],
+        'q': kv_cache['q'][:, :, :-1]
+    }
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(

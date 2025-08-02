@@ -169,7 +169,7 @@ class RelativeAttention(torch.nn.Module):
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         output = self.resid_dropout(output)
-        return output, {'q': q, 'k': k, 'v': v}
+        return output, {'q': q, 'k': k, 'v': v, 'a': a}
     
 
 class GumbelSoftmaxRelativeAttention(torch.nn.Module):
@@ -252,7 +252,7 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         # compute attention
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
-        QEr = torch.einsum('bnlh,rnlkh->bnlk', q, Er)  # b, nh, l, l
+        QEr = torch.einsum('bnlh,rnlkh->bnlk', q, Er)
         a = a + QEr
 
         if use_kv_cache:
@@ -266,4 +266,4 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         output = self.resid_dropout(output)
-        return output, {'q': q, 'k': k, 'v': v}
+        return output, {'q': q, 'k': k, 'v': v, 'a': a}
