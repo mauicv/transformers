@@ -135,10 +135,11 @@ class RelativeAttention(torch.nn.Module):
         b, l, d = x.shape
         if use_kv_cache:
             try:
-                past_k, past_v = kv_cache['k'], kv_cache['v']
+                past_k, past_v, past_q = kv_cache['k'], kv_cache['v'], kv_cache['q']
             except KeyError:
                 past_k = torch.zeros((b, self.num_heads, 0, self.head_dim))
                 past_v = torch.zeros((b, self.num_heads, 0, self.head_dim))
+                past_q = torch.zeros((b, self.num_heads, 0, self.head_dim))
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
         q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
@@ -147,15 +148,19 @@ class RelativeAttention(torch.nn.Module):
         if use_kv_cache:
             k = torch.cat((past_k, k), dim=2)
             v = torch.cat((past_v, v), dim=2)
+            q = torch.cat((past_q, q), dim=2)
 
-        rel_pos = generate_relative_positions(l)
+        b, _, kv_l, _ = v.shape
+        rel_pos = generate_relative_positions(kv_l)
         Er = self.Er[:, rel_pos].unsqueeze(0)
-
         # compute attention
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
-        QEr = torch.einsum('bnlh,rnlkh->bnlk', q, Er)  # b, nh, l, l
+        QEr = torch.einsum('bnlh,rnlkh->bnlk', q, Er)
         a = a + QEr
+
+        if use_kv_cache:
+            a = a[:, :, -l:, :]
 
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))
@@ -224,19 +229,24 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         b, l, d = x.shape
         if use_kv_cache:
             try:
-                past_k, past_v = kv_cache['k'], kv_cache['v']
+                past_k, past_v, past_q = kv_cache['k'], kv_cache['v'], kv_cache['q']
             except KeyError:
                 past_k = torch.zeros((b, self.num_heads, 0, self.head_dim))
                 past_v = torch.zeros((b, self.num_heads, 0, self.head_dim))
+                past_q = torch.zeros((b, self.num_heads, 0, self.head_dim))
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
         q = q.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
+        kv_l = 0
         if use_kv_cache:
             k = torch.cat((past_k, k), dim=2)
             v = torch.cat((past_v, v), dim=2)
-        rel_pos = generate_relative_positions(l)
+            q = torch.cat((past_q, q), dim=2)
+
+        b, _, kv_l, _ = v.shape
+        rel_pos = generate_relative_positions(kv_l)
         Er = self.Er[:, rel_pos].unsqueeze(0)
 
         # compute attention
@@ -244,6 +254,9 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
         QEr = torch.einsum('bnlh,rnlkh->bnlk', q, Er)  # b, nh, l, l
         a = a + QEr
+
+        if use_kv_cache:
+            a = a[:, :, -l:, :]
 
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))

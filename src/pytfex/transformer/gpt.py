@@ -28,7 +28,8 @@ class GPT(torch.nn.Module, BaseTransformer):
         return [
             {
                 'k': torch.zeros(1, self.num_heads, 0, self.head_dim),
-                'v': torch.zeros(1, self.num_heads, 0, self.head_dim)
+                'v': torch.zeros(1, self.num_heads, 0, self.head_dim),
+                'q': torch.zeros(1, self.num_heads, 0, self.head_dim),
             } for _ in range(len(self.layers))
         ]
 
