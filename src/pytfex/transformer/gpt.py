@@ -66,15 +66,12 @@ class GPT(torch.nn.Module, BaseTransformer):
             x = self.embedder(x, kv_cache=kv_cache)
         x = self.drop(x)
         for layer_idx, layer in enumerate(self.layers):
-            if use_kv_cache:
-                kv_cache_layer = kv_cache.layers[layer_idx]
-            else:
-                kv_cache_layer = None
-            x, _kv_cache = layer(
+            layer_cache = kv_cache.layers[layer_idx] if use_kv_cache else None
+            x, _ = layer(
                 x,
                 mask=mask,
                 use_kv_cache=use_kv_cache,
-                kv_cache=kv_cache_layer
+                kv_cache=layer_cache
             )
         if self.head is not None:
             x = self.head(x)
