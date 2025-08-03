@@ -6,6 +6,7 @@ def get_tc_moe_gpt_config(config):
             hidden_dim: {config.hdn_dim}
             num_heads: {config.num_heads}
             dropout: {config.dropout}
+            blk_size: {config.blk_size}
             embedder:
                 type: 'MultiEmbedder'
                 params:

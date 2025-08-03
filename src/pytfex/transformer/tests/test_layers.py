@@ -2,6 +2,7 @@ from pytfex.transformer.attention import Attention, RelativeAttention, GumbelSof
 from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe_ec import ExpertChoiceMoE
 from pytfex.transformer.moe_tc import TokenChoiceMoE
+from pytfex.transformer.layer import TransformerLayer
 import torch
 
 
@@ -12,9 +13,32 @@ def test_attention():
         dropout=0.5
     )
 
-    t1 = torch.zeros((1, 10, 12))
-    t2 = attn(t1)
+    t1 = torch.ones((1, 10, 12))
+    t2, _ = attn(t1)
     assert t2.shape == (1, 10, 12)
+
+
+def test_attention_kv_cache():
+    attn = Attention(
+        hidden_dim=12,
+        num_heads=4,
+        dropout=0.0
+    )
+
+    t1 = torch.randn((2, 10, 12))
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    kv_cache.i = 9
+    t1 = t1[:, [-1], :]
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
+    assert t2.shape == (2, 1, 12)
+    for a, b in zip(
+            t2[:, [-1]].flatten().tolist(),
+            _t2[:, [-1]].flatten().tolist()
+        ):
+        assert abs(a - b) < 1e-6, f"{a} != {b}"
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_rel_attention():
@@ -25,9 +49,33 @@ def test_rel_attention():
         dropout=0.5
     )
 
-    t1 = torch.zeros((1, 10, 12))
-    t2 = attn(t1)
+    t1 = torch.ones((1, 10, 12))
+    t2, _ = attn(t1)
     assert t2.shape == (1, 10, 12)
+
+
+def test_rel_attention_kv_cache():
+    attn = RelativeAttention(
+        hidden_dim=12,
+        num_heads=4,
+        num_positions=10,
+        dropout=0.0
+    )
+
+    t1 = torch.randn((2, 10, 12))
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    t1 = t1[:, [-1], :]
+    kv_cache.i = 9
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
+    assert t2.shape == (2, 1, 12)
+    for a, b in zip(
+            t2[:, [-1]].flatten().tolist(),
+            _t2[:, [-1]].flatten().tolist()
+        ):
+        assert abs(a - b) < 1e-6, f"{a} != {b}"
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_gumbel_softmax_rel_attention():
@@ -38,14 +86,39 @@ def test_gumbel_softmax_rel_attention():
         dropout=0.5
     )
 
-    t1 = torch.zeros((1, 10, 12))
-    t2 = attn(t1)
+    t1 = torch.ones((1, 10, 12))
+    t2, _ = attn(t1)
     assert t2.shape == (1, 10, 12)
 
     attn.set_tau(0.5)
     attn.set_hard(True)
-    t3 = attn(t1)
+    t3, _ = attn(t1)
     assert t3.shape == (1, 10, 12)
+
+
+def test_gumbel_softmax_rel_attention_kv_cache():
+    attn = GumbelSoftmaxRelativeAttention(
+        hidden_dim=12,
+        num_heads=4,
+        num_positions=10,
+        dropout=0.0
+    )
+    attn.set_tau(0.0)
+    attn.set_hard(True)
+    t1 = torch.randn((2, 10, 12))
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    t1 = t1[:, [-1], :]
+    kv_cache.i = 9
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
+    assert t2.shape == (2, 1, 12)
+    for a, b in zip(
+            t2[:, [-1]].flatten().tolist(),
+            _t2[:, [-1]].flatten().tolist()
+        ):
+        assert abs(a - b) < 1e-6, f"{a} != {b}"
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_MLP():
@@ -53,7 +126,7 @@ def test_MLP():
         hidden_dim=12,
         dropout=0.5
     )
-    t1 = torch.zeros((1, 10, 12))
+    t1 = torch.ones((1, 10, 12))
     t2 = mlp(t1)
     assert t2.shape == (1, 10, 12)
 
@@ -88,3 +161,28 @@ def test_token_choice_MoE_MLP():
     t1 = torch.randn((2, 10, 12))
     t2 = mlp(t1)
     assert t2.shape == (2, 10, 12)
+
+
+def test_transformer_layer():
+    layer = TransformerLayer(
+        hidden_dim=12,
+        attn=Attention(
+            hidden_dim=12,
+            num_heads=4,
+            dropout=0.0
+        ),
+        mlp=MLP(
+            hidden_dim=12,
+            dropout=0.0
+        )
+    )
+    t1 = torch.randn((1, 3, 12))
+    t21, _ = layer(t1)
+    t22, _ = layer(t1, use_kv_cache=True, kv_cache=None)
+    for a, b in zip(
+            t21[:, [-1]].flatten().tolist(),
+            t22[:, [-1]].flatten().tolist()
+        ):
+        assert abs(a - b) < 1e-6, f"{a} != {b}"
+    assert t21.shape == (1, 3, 12)
+    assert t22.shape == (1, 3, 12)
