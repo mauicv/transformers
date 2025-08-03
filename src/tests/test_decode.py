@@ -57,9 +57,9 @@ def test_kv_cache():
     preds_1, kv_cache_2 = model(input_ids, mask=mask, use_kv_cache=True, kv_cache=None)
     input_ids = torch.tensor([[0]])
     preds_2, kv_cache_1 = model(input_ids, use_kv_cache=True, kv_cache=kv_cache_1)
-    for cache_1, cache_2 in zip(kv_cache_1, kv_cache_2):
-        assert torch.allclose(cache_1['v'], cache_2['v'])
-        assert torch.allclose(cache_1['k'], cache_2['k'])
+    for cache_1, cache_2 in zip(kv_cache_1.layers, kv_cache_2.layers):
+        assert torch.allclose(cache_1.v, cache_2.v)
+        assert torch.allclose(cache_1.k, cache_2.k)
     assert torch.allclose(preds_1[:, -1, :], preds_2[:, -1, :])
 
 def test_kv_cache_decode(training_setup):

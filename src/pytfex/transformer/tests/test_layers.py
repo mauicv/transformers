@@ -26,18 +26,19 @@ def test_attention_kv_cache():
     )
 
     t1 = torch.randn((2, 10, 12))
-    _t2, kv_cache = attn(t1)
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    kv_cache.i = 9
     t1 = t1[:, [-1], :]
-    kv = {'k': kv_cache['k'][:, :, :-1], 'v': kv_cache['v'][:, :, :-1]}
-    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
             t2[:, [-1]].flatten().tolist(),
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache['k'].shape == (2, 4, 10, 3)
-    assert kv_cache['v'].shape == (2, 4, 10, 3)
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_rel_attention():
@@ -61,23 +62,20 @@ def test_rel_attention_kv_cache():
         dropout=0.0
     )
 
-    t1 = torch.ones((2, 10, 12))
-    _t2, kv_cache = attn(t1)
-    t1 = torch.ones((2, 1, 12))
-    kv = {
-        'k': kv_cache['k'][:, :, :-1],
-        'v': kv_cache['v'][:, :, :-1],
-        'q': kv_cache['q'][:, :, :-1]
-    }
-    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
+    t1 = torch.randn((2, 10, 12))
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    t1 = t1[:, [-1], :]
+    kv_cache.i = 9
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
             t2[:, [-1]].flatten().tolist(),
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache['k'].shape == (2, 4, 10, 3)
-    assert kv_cache['v'].shape == (2, 4, 10, 3)
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_gumbel_softmax_rel_attention():
@@ -105,23 +103,22 @@ def test_gumbel_softmax_rel_attention_kv_cache():
         num_positions=10,
         dropout=0.0
     )
-    t1 = torch.ones((2, 10, 12))
-    _t2, kv_cache = attn(t1)
-    t1 = torch.ones((2, 1, 12))
-    kv = {
-        'k': kv_cache['k'][:, :, :-1],
-        'v': kv_cache['v'][:, :, :-1],
-        'q': kv_cache['q'][:, :, :-1]
-    }
-    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv)
+    attn.set_tau(0.0)
+    attn.set_hard(True)
+    t1 = torch.randn((2, 10, 12))
+    _t2, kv_cache = attn(t1, use_kv_cache=True)
+    t1 = t1[:, [-1], :]
+    kv_cache.i = 9
+    t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
             t2[:, [-1]].flatten().tolist(),
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache['k'].shape == (2, 4, 10, 3)
-    assert kv_cache['v'].shape == (2, 4, 10, 3)
+    assert kv_cache.k.shape == (2, 4, 10, 3)
+    assert kv_cache.v.shape == (2, 4, 10, 3)
+    assert kv_cache.i == 10
 
 
 def test_MLP():
@@ -181,7 +178,7 @@ def test_transformer_layer():
     )
     t1 = torch.randn((1, 3, 12))
     t21, _ = layer(t1)
-    t22, _ = layer(t1, use_kv_cache=True, kv_cache={})
+    t22, _ = layer(t1, use_kv_cache=True, kv_cache=None)
     for a, b in zip(
             t21[:, [-1]].flatten().tolist(),
             t22[:, [-1]].flatten().tolist()

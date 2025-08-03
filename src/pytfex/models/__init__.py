@@ -20,6 +20,7 @@ class GPTExpertChoiceMoEConfig:
     mlp_hdn_dim: int = 1024
     dropout: float = 0.1
     num_heads: int = 4
+    blk_size: int = 26
 
 
 @dataclass

@@ -1,6 +1,29 @@
 from pytfex.transformer.base import BaseTransformer
 import torch.nn as nn
 import torch
+from typing import Optional
+from pytfex.transformer.attention import LayerKVQCache
+
+class KVCache:
+    def __init__(self, batch_size: int, head_dim: int, num_heads: int, max_len: int, num_layers: int):
+        self.batch_size = batch_size
+        self.head_dim = head_dim
+        self.num_heads = num_heads
+        self.max_len = max_len
+        self.layers = [
+            LayerKVQCache(
+                batch_size=self.batch_size,
+                head_dim=self.head_dim,
+                num_heads=self.num_heads,
+                max_len=self.max_len
+            ) for _ in range(num_layers)
+        ]
+
+    def size(self):
+        return self.layers[-1].size()
+    
+    def __len__(self):
+        return len(self.layers)
 
 
 class GPT(torch.nn.Module, BaseTransformer):
@@ -8,6 +31,7 @@ class GPT(torch.nn.Module, BaseTransformer):
             self,
             hidden_dim: int,
             num_heads: int,
+            blk_size: Optional[int] = None,
             dropout: float=0.5,
             embedder: torch.nn.Module=None,
             layers: list[torch.nn.Module] = [],
@@ -18,42 +42,42 @@ class GPT(torch.nn.Module, BaseTransformer):
         self.num_heads = num_heads
         self.head_dim = hidden_dim // num_heads
         self.dropout = dropout
+        self.blk_size = blk_size
 
         self.drop = nn.Dropout(dropout)
         self.embedder = embedder
         self.layers = torch.nn.ModuleList(layers)
         self.head = head
 
-    def _init_kv_cache(self):
-        return [
-            {
-                'k': torch.zeros(1, self.num_heads, 0, self.head_dim),
-                'v': torch.zeros(1, self.num_heads, 0, self.head_dim),
-                'q': torch.zeros(1, self.num_heads, 0, self.head_dim),
-            } for _ in range(len(self.layers))
-        ]
-
     def forward(self, x, mask=None, use_kv_cache=False, kv_cache=None):
         if use_kv_cache and kv_cache is not None:
             assert len(kv_cache) == len(self.layers), \
                 'kv_cache must be a list of dicts with the same length as layers'
-        if kv_cache is None:
-            kv_cache = self._init_kv_cache()
+        if kv_cache is None and use_kv_cache:
+            kv_cache = KVCache(
+                batch_size=x.shape[0],
+                head_dim=self.head_dim,
+                num_heads=self.num_heads,
+                max_len=self.blk_size,
+                num_layers=len(self.layers)
+            )
 
         if self.embedder:
             x = self.embedder(x, kv_cache=kv_cache)
         x = self.drop(x)
-        new_kv_cache = []
-        for layer, kv_cache in zip(self.layers, kv_cache):
+        for layer_idx, layer in enumerate(self.layers):
+            if use_kv_cache:
+                kv_cache_layer = kv_cache.layers[layer_idx]
+            else:
+                kv_cache_layer = None
             x, _kv_cache = layer(
                 x,
                 mask=mask,
                 use_kv_cache=use_kv_cache,
-                kv_cache=kv_cache
+                kv_cache=kv_cache_layer
             )
-            new_kv_cache.append(_kv_cache)
         if self.head is not None:
             x = self.head(x)
         if not use_kv_cache:
             return x
-        return x, new_kv_cache
+        return x, kv_cache

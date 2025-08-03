@@ -51,7 +51,7 @@ class PositionEmbedder(torch.nn.Module):
                 .to(x.device)
             )
         else:
-            leading_position = min(x.shape[1] + kv_cache[-1]['k'].shape[2], self.pos_emb.num_embeddings) - x.shape[1] 
+            leading_position = min(x.shape[1] + kv_cache.size(), self.pos_emb.num_embeddings) - x.shape[1] 
             positions = (torch
                 .arange(leading_position, leading_position + x.shape[1])
                 .expand(x.shape[0], -1)
