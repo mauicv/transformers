@@ -70,6 +70,7 @@ class Attention(torch.nn.Module):
         if use_kv_cache:
             k = torch.cat((past_k, k), dim=2)
             v = torch.cat((past_v, v), dim=2)
+            del past_k, past_v # free memory
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
         if mask is not None:
@@ -149,6 +150,7 @@ class RelativeAttention(torch.nn.Module):
             k = torch.cat((past_k, k), dim=2)
             v = torch.cat((past_v, v), dim=2)
             q = torch.cat((past_q, q), dim=2)
+            del past_k, past_v, past_q # free memory
 
         b, _, kv_l, _ = v.shape
         rel_pos = generate_relative_positions(kv_l)
@@ -244,6 +246,7 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
             k = torch.cat((past_k, k), dim=2)
             v = torch.cat((past_v, v), dim=2)
             q = torch.cat((past_q, q), dim=2)
+            del past_k, past_v, past_q # free memory
 
         b, _, kv_l, _ = v.shape
         rel_pos = generate_relative_positions(kv_l)
