@@ -10,14 +10,7 @@ class KVCache:
         self.head_dim = head_dim
         self.num_heads = num_heads
         self.max_len = max_len
-        self.layers = [
-            LayerKVQCache(
-                batch_size=self.batch_size,
-                head_dim=self.head_dim,
-                num_heads=self.num_heads,
-                max_len=self.max_len
-            ) for _ in range(num_layers)
-        ]
+        self.layers = [LayerKVQCache() for _ in range(num_layers)]
 
     def size(self):
         return self.layers[-1].size()

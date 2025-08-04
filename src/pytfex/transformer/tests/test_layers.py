@@ -27,7 +27,9 @@ def test_attention_kv_cache():
 
     t1 = torch.randn((2, 10, 12))
     _t2, kv_cache = attn(t1, use_kv_cache=True)
-    kv_cache.i = 9
+    kv_cache.q = [kv_cache.q[-1][:, :, :-1, :]]
+    kv_cache.k = [kv_cache.k[-1][:, :, :-1, :]]
+    kv_cache.v = [kv_cache.v[-1][:, :, :-1, :]]
     t1 = t1[:, [-1], :]
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
@@ -36,9 +38,11 @@ def test_attention_kv_cache():
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache.k.shape == (2, 4, 10, 3)
-    assert kv_cache.v.shape == (2, 4, 10, 3)
-    assert kv_cache.i == 10
+    assert kv_cache.k[0].shape == (2, 4, 9, 3)
+    assert kv_cache.v[0].shape == (2, 4, 9, 3)
+    assert kv_cache.k[1].shape == (2, 4, 1, 3)
+    assert kv_cache.v[1].shape == (2, 4, 1, 3)
+    assert len(kv_cache.q) == 2
 
 
 def test_rel_attention():
@@ -65,7 +69,9 @@ def test_rel_attention_kv_cache():
     t1 = torch.randn((2, 10, 12))
     _t2, kv_cache = attn(t1, use_kv_cache=True)
     t1 = t1[:, [-1], :]
-    kv_cache.i = 9
+    kv_cache.q = [kv_cache.q[-1][:, :, :-1, :]]
+    kv_cache.k = [kv_cache.k[-1][:, :, :-1, :]]
+    kv_cache.v = [kv_cache.v[-1][:, :, :-1, :]]
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
@@ -73,9 +79,11 @@ def test_rel_attention_kv_cache():
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache.k.shape == (2, 4, 10, 3)
-    assert kv_cache.v.shape == (2, 4, 10, 3)
-    assert kv_cache.i == 10
+    assert kv_cache.k[0].shape == (2, 4, 9, 3)
+    assert kv_cache.v[0].shape == (2, 4, 9, 3)
+    assert kv_cache.k[1].shape == (2, 4, 1, 3)
+    assert kv_cache.v[1].shape == (2, 4, 1, 3)
+    assert len(kv_cache.q) == 2
 
 
 def test_gumbel_softmax_rel_attention():
@@ -108,7 +116,9 @@ def test_gumbel_softmax_rel_attention_kv_cache():
     t1 = torch.randn((2, 10, 12))
     _t2, kv_cache = attn(t1, use_kv_cache=True)
     t1 = t1[:, [-1], :]
-    kv_cache.i = 9
+    kv_cache.q = [kv_cache.q[-1][:, :, :-1, :]]
+    kv_cache.k = [kv_cache.k[-1][:, :, :-1, :]]
+    kv_cache.v = [kv_cache.v[-1][:, :, :-1, :]]
     t2, kv_cache = attn(t1, use_kv_cache=True, kv_cache=kv_cache)
     assert t2.shape == (2, 1, 12)
     for a, b in zip(
@@ -116,9 +126,11 @@ def test_gumbel_softmax_rel_attention_kv_cache():
             _t2[:, [-1]].flatten().tolist()
         ):
         assert abs(a - b) < 1e-6, f"{a} != {b}"
-    assert kv_cache.k.shape == (2, 4, 10, 3)
-    assert kv_cache.v.shape == (2, 4, 10, 3)
-    assert kv_cache.i == 10
+    assert kv_cache.k[0].shape == (2, 4, 9, 3)
+    assert kv_cache.v[0].shape == (2, 4, 9, 3)
+    assert kv_cache.k[1].shape == (2, 4, 1, 3)
+    assert kv_cache.v[1].shape == (2, 4, 1, 3)
+    assert len(kv_cache.q) == 2
 
 
 def test_MLP():

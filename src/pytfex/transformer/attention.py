@@ -20,30 +20,25 @@ def _verify_input(x, mask, use_kv_cache, kv_cache, hidden_dim, head_dim):
 
 
 class LayerKVQCache:
-    def __init__(self, batch_size:int, head_dim: int, num_heads: int, max_len: int):
-        self.k = torch.zeros((batch_size, num_heads, max_len, head_dim))
-        self.v = torch.zeros((batch_size, num_heads, max_len, head_dim))
-        self.q = torch.zeros((batch_size, num_heads, max_len, head_dim))
-        self.i = 0
+    def __init__(self):
+        self.k = []
+        self.v = []
+        self.q = []
 
     def write(self, k, v, q):
-        size = k.shape[2]
-        self.k[:, :, self.i:self.i+size, :] = k
-        self.v[:, :, self.i:self.i+size, :] = v
-        self.q[:, :, self.i:self.i+size, :] = q
+        self.k.append(k)
+        self.v.append(v)
+        self.q.append(q)
 
-    def read(self, size: int = 1):
+    def read(self):
         return (
-            self.k[:, :, :self.i+size, :],
-            self.v[:, :, :self.i+size, :],
-            self.q[:, :, :self.i+size, :]
+            torch.cat(self.k, dim=2),
+            torch.cat(self.v, dim=2),
+            torch.cat(self.q, dim=2)
         )
-    
-    def inc(self, size: int = 1):
-        self.i += size
 
     def size(self):
-        return self.i
+        return sum(k.shape[2] for k in self.k)
 
 
 class Attention(torch.nn.Module):
@@ -86,14 +81,7 @@ class Attention(torch.nn.Module):
         b, l, d = x.shape
 
         if use_kv_cache and kv_cache is None:
-            # Initialize kv_cache if it is not provided, Note this kv_cache has max size
-            # l which is the current sequence length not the blk_size of the model...
-            kv_cache = LayerKVQCache(
-                batch_size=b,
-                head_dim=self.head_dim,
-                num_heads=self.num_heads,
-                max_len=l
-            )
+            kv_cache = LayerKVQCache()
 
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
@@ -102,11 +90,8 @@ class Attention(torch.nn.Module):
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
 
         if use_kv_cache:
-            # Order here is important:
             kv_cache.write(k, v, q)
-            k, v, _ = kv_cache.read(l)
-            kv_cache.inc(l)
-
+            k, v, _ = kv_cache.read()
             
         hd = torch.tensor(self.head_dim, dtype=torch.float32)
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
@@ -172,14 +157,7 @@ class RelativeAttention(torch.nn.Module):
         _verify_input(x, mask, use_kv_cache, kv_cache, self.hidden_dim, self.head_dim)
         b, l, d = x.shape
         if use_kv_cache and kv_cache is None:
-            # Initialize kv_cache if it is not provided, Note this kv_cache has max size
-            # l which is the current sequence length not the blk_size of the model...
-            kv_cache = LayerKVQCache(
-                batch_size=b,
-                head_dim=self.head_dim,
-                num_heads=self.num_heads,
-                max_len=l
-            )
+            kv_cache = LayerKVQCache()
 
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
@@ -188,10 +166,8 @@ class RelativeAttention(torch.nn.Module):
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
 
         if use_kv_cache:
-            # Order here is important:
             kv_cache.write(k, v, q)
-            k, v, q = kv_cache.read(l)
-            kv_cache.inc(l)
+            k, v, q = kv_cache.read()
 
         b, _, kv_l, _ = v.shape
         rel_pos = generate_relative_positions(kv_l)
@@ -272,14 +248,7 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         b, l, d = x.shape
 
         if use_kv_cache and kv_cache is None:
-            # Initialize kv_cache if it is not provided, Note this kv_cache has max size
-            # l which is the current sequence length not the blk_size of the model...
-            kv_cache = LayerKVQCache(
-                batch_size=b,
-                head_dim=self.head_dim,
-                num_heads=self.num_heads,
-                max_len=l
-            )
+            kv_cache = LayerKVQCache()
 
         qkv = self.qkv(x)
         q, k, v = torch.split(qkv, self.hidden_dim, dim=2)
@@ -288,10 +257,8 @@ class GumbelSoftmaxRelativeAttention(torch.nn.Module):
         v = v.reshape(b, l, self.num_heads, self.head_dim).transpose(1, 2)
 
         if use_kv_cache:
-            # Order here is important:
             kv_cache.write(k, v, q)
-            k, v, q = kv_cache.read(l)
-            kv_cache.inc(l)
+            k, v, q = kv_cache.read()
 
         b, _, kv_l, _ = v.shape
         rel_pos = generate_relative_positions(kv_l)
