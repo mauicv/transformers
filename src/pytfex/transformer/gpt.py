@@ -50,9 +50,9 @@ class GPT(torch.nn.Module, BaseTransformer):
         self.head = head
 
     def forward(self, x, mask=None, use_kv_cache=False, kv_cache=None):
-        if use_kv_cache and kv_cache is not None:
-            assert len(kv_cache) == len(self.layers), \
-                'kv_cache must be a list of dicts with the same length as layers'
+        if self.embedder:
+            x = self.embedder(x, kv_cache=kv_cache)
+
         if kv_cache is None and use_kv_cache:
             kv_cache = KVCache(
                 batch_size=x.shape[0],
@@ -61,9 +61,7 @@ class GPT(torch.nn.Module, BaseTransformer):
                 max_len=self.blk_size,
                 num_layers=len(self.layers)
             )
-
-        if self.embedder:
-            x = self.embedder(x, kv_cache=kv_cache)
+        
         x = self.drop(x)
         for layer_idx, layer in enumerate(self.layers):
             layer_cache = kv_cache.layers[layer_idx] if use_kv_cache else None
