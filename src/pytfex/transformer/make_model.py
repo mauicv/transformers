@@ -11,6 +11,8 @@ from pytfex.transformer.gpt import GPT
 from pytfex.transformer.heads import ClassificationHead, InversePatch
 from pytfex.transformer.embedders import TokenEmbedder, PositionEmbedder, \
     MultiEmbedder, PatchEmbedder, LinearEmbedder
+from pytfex.transformer.experimental.soup import ExpertChoiceSoup, RelativeAttentionSoup
+from pytfex.transformer.experimental.wee_soupy_boy import WeeSoupyBoy
 
 
 class TransformerObjectRegistry:
@@ -29,7 +31,10 @@ class TransformerObjectRegistry:
         'PatchEmbedder': PatchEmbedder,
         'LinearEmbedder': LinearEmbedder,
         'RelativeAttention': RelativeAttention,
-        'GumbelSoftmaxRelativeAttention': GumbelSoftmaxRelativeAttention
+        'GumbelSoftmaxRelativeAttention': GumbelSoftmaxRelativeAttention,
+        'ExpertChoiceSoup': ExpertChoiceSoup,
+        'RelativeAttentionSoup': RelativeAttentionSoup,
+        'WeeSoupyBoy': WeeSoupyBoy,
     }
 
     def register(name):
