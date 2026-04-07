@@ -60,6 +60,7 @@ class GPTRelAttnConfig:
     num_layers: int = 2
     dropout: float = 0.1
     num_heads: int = 4
+    activation: str = 'softmax'
 
 
 @dataclass
