@@ -2,6 +2,17 @@ import torch
 from pytfex.transformer.gumbel_softmax import gumbel_softmax
 
 
+def _get_activation(name: str):
+    if name == 'softmax':
+        return lambda a: torch.softmax(a, dim=-1)
+    elif name == 'sigmoid':
+        return lambda a: torch.sigmoid(a)
+    elif name == 'linear':
+        return lambda a: a
+    else:
+        raise ValueError(f"Unknown attention activation '{name}'. Choose from: softmax, sigmoid, linear")
+
+
 def _verify_input(x, mask, use_kv_cache, kv_cache, hidden_dim, head_dim):
     # if use_kv_cache and kv_cache is None:
     #     raise ValueError("kv_cache must be provided if use_kv_cache is True")
@@ -47,6 +58,7 @@ class Attention(torch.nn.Module):
             hidden_dim: int,
             num_heads: int,
             dropout: float=0.5,
+            activation: str='softmax',
         ) -> None:
         super(Attention, self).__init__()
         assert hidden_dim % num_heads == 0, f"num_heads must divide hidden_dim, {hidden_dim=}, {num_heads=}"
@@ -58,6 +70,7 @@ class Attention(torch.nn.Module):
         )
         self.attn_dropout = torch.nn.Dropout(self.dropout)
         self.resid_dropout = torch.nn.Dropout(self.dropout)
+        self.activation = _get_activation(activation)
 
         self.qkv = torch.nn.Linear(
             self.hidden_dim,
@@ -97,7 +110,7 @@ class Attention(torch.nn.Module):
         a = q @ k.transpose(-2, -1) / torch.sqrt(hd)
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))
-        a = torch.softmax(a, dim=-1)
+        a = self.activation(a)
         a = self.attn_dropout(a)
         output = (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
@@ -116,7 +129,8 @@ class RelativeAttention(torch.nn.Module):
             hidden_dim: int,
             num_heads: int,
             num_positions: int,
-            dropout=0.1
+            dropout=0.1,
+            activation: str='softmax',
         ):
         super().__init__()
         self.num_heads = num_heads
@@ -127,6 +141,7 @@ class RelativeAttention(torch.nn.Module):
         )
         self.attn_dropout = torch.nn.Dropout(self.dropout)
         self.resid_dropout = torch.nn.Dropout(self.dropout)
+        self.activation = _get_activation(activation)
 
         self.qkv = torch.nn.Linear(
             self.hidden_dim,
@@ -183,13 +198,13 @@ class RelativeAttention(torch.nn.Module):
 
         if mask is not None:
             a = a.masked_fill(mask, float('-inf'))
-        a = torch.softmax(a, dim=-1)
+        a = self.activation(a)
         a = self.attn_dropout(a)
         output =  (a @ v).transpose(1, 2).reshape(b, l, d)
         output = self.linear(output)
         output = self.resid_dropout(output)
         return output, kv_cache
-    
+
 
 class GumbelSoftmaxRelativeAttention(torch.nn.Module):
     def __init__(

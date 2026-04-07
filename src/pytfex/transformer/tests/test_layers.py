@@ -3,14 +3,17 @@ from pytfex.transformer.mlp import MLP
 from pytfex.transformer.moe_ec import ExpertChoiceMoE
 from pytfex.transformer.moe_tc import TokenChoiceMoE
 from pytfex.transformer.layer import TransformerLayer
+import pytest
 import torch
 
 
-def test_attention():
+@pytest.mark.parametrize("activation", ["softmax", "sigmoid", "linear"])
+def test_attention(activation):
     attn = Attention(
         hidden_dim=12,
         num_heads=4,
-        dropout=0.5
+        dropout=0.5,
+        activation=activation,
     )
 
     t1 = torch.ones((1, 10, 12))
@@ -45,12 +48,14 @@ def test_attention_kv_cache():
     assert len(kv_cache.q) == 2
 
 
-def test_rel_attention():
+@pytest.mark.parametrize("activation", ["softmax", "sigmoid", "linear"])
+def test_rel_attention(activation):
     attn = RelativeAttention(
         hidden_dim=12,
         num_heads=4,
         num_positions=10,
-        dropout=0.5
+        dropout=0.5,
+        activation=activation,
     )
 
     t1 = torch.ones((1, 10, 12))
