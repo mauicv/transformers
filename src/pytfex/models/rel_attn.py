@@ -33,6 +33,7 @@ def get_rel_attn_gpt_config(config):
                                 num_heads: {config.num_heads}
                                 dropout: {config.dropout}
                                 num_positions: {config.blk_size}
+                                activation: {config.activation}
                         mlp:
                             type: 'MLP'
                             params:
