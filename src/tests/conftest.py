@@ -27,6 +27,7 @@ import pytest
         hdn_dim=256,
         blk_size=12,
         batch_size=32,
+        # activation='sigmoid',
     ), 6),
     (GPTExpertChoiceMoEConfig(
         vcb_size=3,
