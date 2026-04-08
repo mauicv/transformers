@@ -4,6 +4,7 @@ from pytfex.models.rel_attn import get_rel_attn_gpt_config
 from pytfex.models.gumbel_sm_rel_attn import get_gumbel_sm_rel_attn_gpt_config
 from pytfex.models.basic import get_basic_gpt_config
 from pytfex.transformer.make_model import init_from_yml_string
+from pytfex.models.wee_soupy_boy import get_basic_wee_soupy_config
 from dataclasses import dataclass
 
 
@@ -75,12 +76,26 @@ class GPTGumbelSoftmaxRelativeAttentionConfig:
     num_heads: int = 4
 
 
+@dataclass
+class GPTWeeSoupyBoyConfig:
+    model_type: str = 'gpt-wee-soupy-boy'
+    vcb_size: int = 65
+    hdn_dim: int = 256
+    blk_size: int = 256
+    depth: int = 2
+    num_experts: int = 4
+    dropout: float = 0.1
+    num_heads: int = 4
+    batch_size: int = 32
+
+
 def get_model(config):
     config_str = {
         'gpt-ec-moe': get_ec_moe_gpt_config,
         'gpt-tc-moe': get_tc_moe_gpt_config,
         'gpt-basic': get_basic_gpt_config,
         'gpt-rel-attn': get_rel_attn_gpt_config,
-        'gpt-gumbel-sm-rel-attn': get_gumbel_sm_rel_attn_gpt_config
+        'gpt-gumbel-sm-rel-attn': get_gumbel_sm_rel_attn_gpt_config,
+        'gpt-wee-soupy-boy': get_basic_wee_soupy_config,
     }[config.model_type](config)
     return init_from_yml_string(config_str)

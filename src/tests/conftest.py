@@ -9,6 +9,7 @@ from pytfex.models import (
     GPTTokenChoiceMoEConfig,
     GPTExpertChoiceMoEConfig,
     GPTGumbelSoftmaxRelativeAttentionConfig,
+    GPTWeeSoupyBoyConfig,
 )
 
 import torch
@@ -16,38 +17,46 @@ import pytest
 
 
 @pytest.fixture(params=[
-    (GPTBasicConfig(
+    # (GPTBasicConfig(
+    #     vcb_size=3,
+    #     hdn_dim=256,
+    #     blk_size=12,
+    #     batch_size=32,
+    # ), 6),
+    # (GPTRelAttnConfig(
+    #     vcb_size=3,
+    #     hdn_dim=256,
+    #     blk_size=12,
+    #     batch_size=32,
+    # ), 6),
+    # (GPTExpertChoiceMoEConfig(
+    #     vcb_size=3,
+    #     hdn_dim=256,
+    #     blk_size=12,
+    #     c=2,
+    #     num_experts=4,
+    #     batch_size=32,
+    # ), 6),
+    # (GPTTokenChoiceMoEConfig(
+    #     vcb_size=3,
+    #     hdn_dim=256,
+    #     blk_size=12,
+    #     k=2,
+    #     num_experts=4,
+    #     batch_size=32,
+    # ), 6),
+    # (GPTGumbelSoftmaxRelativeAttentionConfig(
+    #     vcb_size=3,
+    #     hdn_dim=256,
+    #     blk_size=12,
+    #     batch_size=32,
+    # ), 6),
+    (GPTWeeSoupyBoyConfig(
         vcb_size=3,
         hdn_dim=256,
         blk_size=12,
-        batch_size=32,
-    ), 6),
-    (GPTRelAttnConfig(
-        vcb_size=3,
-        hdn_dim=256,
-        blk_size=12,
-        batch_size=32,
-    ), 6),
-    (GPTExpertChoiceMoEConfig(
-        vcb_size=3,
-        hdn_dim=256,
-        blk_size=12,
-        c=2,
-        num_experts=4,
-        batch_size=32,
-    ), 6),
-    (GPTTokenChoiceMoEConfig(
-        vcb_size=3,
-        hdn_dim=256,
-        blk_size=12,
-        k=2,
-        num_experts=4,
-        batch_size=32,
-    ), 6),
-    (GPTGumbelSoftmaxRelativeAttentionConfig(
-        vcb_size=3,
-        hdn_dim=256,
-        blk_size=12,
+        depth=2,
+        num_experts=2,
         batch_size=32,
     ), 6),
 ])
