@@ -6,9 +6,9 @@ def _get_activation(name: str):
     if name == 'softmax':
         return lambda a: torch.softmax(a, dim=-1)
     elif name == 'sigmoid':
-        return lambda a: torch.sigmoid(a)
+        return lambda a: torch.sigmoid(a - torch.log(torch.tensor(a.shape[-1], dtype=torch.float32)))
     elif name == 'linear':
-        return lambda a: a
+        return lambda a: a - torch.log(torch.tensor(a.shape[-1], dtype=torch.float32))
     else:
         raise ValueError(f"Unknown attention activation '{name}'. Choose from: softmax, sigmoid, linear")
 
